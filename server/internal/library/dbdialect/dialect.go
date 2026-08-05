@@ -15,6 +15,7 @@ package dbdialect
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/gogf/gf/v2/frame/g"
@@ -171,6 +172,24 @@ func IsMysql() bool {
 // escapeSQLString 转义 SQL 字符串中的单引号
 func escapeSQLString(s string) string {
 	return strings.ReplaceAll(s, "'", "''")
+}
+
+// dbNameFromLinkPattern 匹配 database.default.link 中的数据库名。
+// 格式：type:user:password@tcp(host:port)/dbname?params
+var dbNameFromLinkPattern = regexp.MustCompile(`^[\w-]+:.*?@.*?\(.*?\)/([^/?]+)`)
+
+// GetConfigDbName 从配置 database.default.link 解析数据库名。
+// 当无法实时获取当前库名时作为兜底，避免硬编码固定库名。
+// 解析失败返回空字符串。
+func GetConfigDbName(ctx context.Context) string {
+	link := g.Cfg().MustGet(ctx, "database.default.link").String()
+	if link == "" {
+		return ""
+	}
+	if m := dbNameFromLinkPattern.FindStringSubmatch(link); len(m) > 1 {
+		return m[1]
+	}
+	return ""
 }
 
 // mysqlFmtToPgFmt 将 MySQL DATE_FORMAT 格式转换为 PG to_char 格式

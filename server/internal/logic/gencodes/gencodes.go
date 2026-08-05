@@ -496,12 +496,12 @@ func saveColumns(ctx context.Context, genId uint64, columns []adminin.GenCodesCo
 	return nil
 }
 
-// getDbName 获取当前数据库名（通过方言层适配 MySQL/PG）
+// getDbName 获取当前数据库名（通过方言层适配 MySQL/PG，无法实时获取时回退到配置解析）
 func getDbName(ctx context.Context) string {
 	dialect := dbdialect.Get()
 	name, err := dialect.GetDbName(ctx)
 	if err != nil || name == "" {
-		return "xygonew"
+		return dbdialect.GetConfigDbName(ctx)
 	}
 	return name
 }

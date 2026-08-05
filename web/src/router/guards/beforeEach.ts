@@ -465,12 +465,8 @@ export function resetRouterState(delay: number): void {
  * @returns true 表示已处理跳转，false 表示无需跳转
  */
 function handleRootPathRedirect(to: RouteLocationNormalized, next: NavigationGuardNext): boolean {
-  // 根路径现在是门户首页，不需要重定向
-  // 后台入口通过 /admin 访问
-  if (to.path === '/') {
-    return false
-  }
-
+  // 根路径 / 已在静态路由中重定向到后台首页，这里无需额外处理。
+  // 后端入口通过 /admin 访问。
   return false
 }
 

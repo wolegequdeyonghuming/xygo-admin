@@ -35,7 +35,7 @@ func (d *mysqlDialect) GetDbName(ctx context.Context) (string, error) {
 		return "", err
 	}
 	if val.IsEmpty() {
-		return "xygonew", nil
+		return GetConfigDbName(ctx), nil
 	}
 	return val.String(), nil
 }
