@@ -25,13 +25,7 @@ export const frontendRoutes: AppRouteRecordRaw[] = [
     component: () => import('@/views/frontend/layouts/FrontendLayout.vue'),
     meta: { title: '首页' },
     children: [
-      // 首页
-      {
-        path: '',
-        name: 'FrontendHome',
-        component: () => import('@/views/frontend/index/index.vue'),
-        meta: { title: '首页' }
-      },
+      // 首页已下线：根路径 / 重定向到后台管理，不再注册门户首页。
       {
         path: 'docs',
         name: 'FrontendDocs',
@@ -93,7 +87,7 @@ export const frontendRoutes: AppRouteRecordRaw[] = [
         name: 'MemberCenter',
         component: () => import('@/views/frontend/member/center.vue'),
         meta: { title: '用户中心', requiresAuth: true }
-      },
+      }
     ]
   }
 ]

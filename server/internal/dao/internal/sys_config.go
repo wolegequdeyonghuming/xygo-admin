@@ -37,6 +37,7 @@ type SysConfigColumns struct {
 	UpdatedBy  string // 更新人
 	CreateTime string // 创建时间
 	UpdateTime string // 更新时间
+	TestField  string // 测试字段（v1.2.7）
 }
 
 // sysConfigColumns holds the columns for the table xy_sys_config.
@@ -57,6 +58,7 @@ var sysConfigColumns = SysConfigColumns{
 	UpdatedBy:  "updated_by",
 	CreateTime: "create_time",
 	UpdateTime: "update_time",
+	TestField:  "test_field",
 }
 
 // NewSysConfigDao creates and returns a new DAO object for table data access.

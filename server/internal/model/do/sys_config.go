@@ -28,4 +28,5 @@ type SysConfig struct {
 	UpdatedBy  any         // 更新人
 	CreateTime any         // 创建时间
 	UpdateTime any         // 更新时间
+	TestField  any         // 测试字段（v1.2.7）
 }

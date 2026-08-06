@@ -9,6 +9,10 @@
 </template>
 
 <script setup lang="ts">
+  import { useDictStore } from '@/store/modules/dict'
+
+  const dictStore = useDictStore()
+
   const props = defineProps<{ modelValue: Record<string, any> }>()
   const emit = defineEmits<{
     (e: 'update:modelValue', v: Record<string, any>): void
@@ -71,7 +75,13 @@
     {
       label: '{{.Label}}',
       key: '{{.TsName}}',
-{{- if and (or (eq .DesignType "switch") (eq .DesignType "radio") (eq .DesignType "select") (eq .FormType "select") (eq .FormType "radio")) .HasOptions}}
+{{- if and (or (eq .DesignType "switch") (eq .DesignType "radio") (eq .DesignType "select") (eq .FormType "select") (eq .FormType "radio")) .DictType}}
+      type: 'select',
+      props: {
+        clearable: true,
+        options: dictStore.getDictData('{{.DictType}}').map((i: any) => ({ label: i.label, value: i.value }))
+      }
+{{- else if and (or (eq .DesignType "switch") (eq .DesignType "radio") (eq .DesignType "select") (eq .FormType "select") (eq .FormType "radio")) .HasOptions}}
       type: 'select',
       props: {
         clearable: true,

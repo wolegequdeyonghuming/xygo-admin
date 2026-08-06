@@ -72,6 +72,11 @@
   import {{.VarName}}DetailDrawer from './modules/{{.FilePrefix}}-detail-drawer.vue'
 {{- end}}
   import { ElTag, ElImage, ElMessageBox } from 'element-plus'
+{{- if .HasDictColumns}}
+  import { useDictStore } from '@/store/modules/dict'
+  import DictLabel from '@/components/DictLabel/index.vue'
+  const dictStore = useDictStore()
+{{- end}}
 {{- if and .HasView (eq .ViewMode "page")}}
   import { useRouter } from 'vue-router'
 {{- end}}
@@ -190,7 +195,9 @@
           label: '{{.Label}}',
           width: 100,
           align: 'center',
-{{- if .RadioOptions}}
+{{- if .DictType}}
+          formatter: (row: any) => h(DictLabel, { dictType: '{{.DictType}}', value: row.{{.TsName}} })
+{{- else if .RadioOptions}}
           formatter: (row: any) => {
             const map: Record<string, [string, string]> = { {{range .RadioOptions}}'{{.Value}}': ['{{.Label}}', '{{.TagType}}'], {{end}} }
             const m = map[String(row.{{.TsName}})]
@@ -205,7 +212,14 @@
           prop: '{{.TsName}}',
           label: '{{.Label}}',
           minWidth: 120,
-{{- if .HasOptions}}
+{{- if .DictType}}
+          formatter: (row: any) => {
+            const vals = Array.isArray(row.{{.TsName}}) ? row.{{.TsName}} : String(row.{{.TsName}} ?? '').split(',').filter(Boolean)
+            return vals.length
+              ? h('div', { style: 'display:flex;gap:4px;flex-wrap:wrap' }, vals.map((v: string) => h(DictLabel, { dictType: '{{.DictType}}', value: v })))
+              : '-'
+          }
+{{- else if .HasOptions}}
           formatter: (row: any) => {
             const map: Record<string, string> = { {{range .Options}}'{{.Value}}': '{{.Label}}', {{end}} }
             const vals = Array.isArray(row.{{.TsName}}) ? row.{{.TsName}} : String(row.{{.TsName}} ?? '').split(',').filter(Boolean)
@@ -462,5 +476,12 @@
 {{- if .HasCheck}}
 
   const handleSelectionChange = (selection: any[]) => { selectedRows.value = selection }
+{{- end}}
+
+{{- if .HasDictColumns}}
+
+  onMounted(() => {
+    dictStore.preload([{{range $i, $dt := .DictTypes}}{{if $i}}, {{end}}'{{$dt}}'{{end}}])
+  })
 {{- end}}
 </script>

@@ -8,15 +8,15 @@ import (
 	"xygo/internal/dao/internal"
 )
 
-// addonDao is the data access object for the table xy_addon.
+// sysDictDataDao is the data access object for the table xy_sys_dict_data.
 // You can define custom methods on it to extend its functionality as needed.
-type addonDao struct {
-	*internal.AddonDao
+type sysDictDataDao struct {
+	*internal.SysDictDataDao
 }
 
 var (
-	// Addon is a globally accessible object for table xy_addon operations.
-	Addon = addonDao{internal.NewAddonDao()}
+	// SysDictData is a globally accessible object for table xy_sys_dict_data operations.
+	SysDictData = sysDictDataDao{internal.NewSysDictDataDao()}
 )
 
 // Add your custom methods and functionality below.

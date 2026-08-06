@@ -20,4 +20,5 @@ type SysAttachment struct {
 	Sha1       string `json:"sha1"       orm:"sha1"        description:"sha1摘要"`        // sha1摘要
 	CreateTime uint   `json:"createTime" orm:"create_time" description:"创建时间"`          // 创建时间
 	UpdateTime uint   `json:"updateTime" orm:"update_time" description:"更新时间"`          // 更新时间
+	TenantId   int64  `json:"tenantId"   orm:"tenant_id"   description:"所属租户ID（0=平台）"`  // 所属租户ID（0=平台）
 }

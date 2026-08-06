@@ -35,6 +35,7 @@ type SysAttachmentColumns struct {
 	Sha1       string // sha1摘要
 	CreateTime string // 创建时间
 	UpdateTime string // 更新时间
+	TenantId   string // 所属租户ID（0=平台）
 }
 
 // sysAttachmentColumns holds the columns for the table xy_sys_attachment.
@@ -53,6 +54,7 @@ var sysAttachmentColumns = SysAttachmentColumns{
 	Sha1:       "sha1",
 	CreateTime: "create_time",
 	UpdateTime: "update_time",
+	TenantId:   "tenant_id",
 }
 
 // NewSysAttachmentDao creates and returns a new DAO object for table data access.

@@ -26,4 +26,5 @@ type SysConfig struct {
 	UpdatedBy  uint64      `json:"updatedBy"  orm:"updated_by"  description:"更新人"`                                                                                   // 更新人
 	CreateTime uint        `json:"createTime" orm:"create_time" description:"创建时间"`                                                                                  // 创建时间
 	UpdateTime uint        `json:"updateTime" orm:"update_time" description:"更新时间"`                                                                                  // 更新时间
+	TestField  string      `json:"testField"  orm:"test_field"  description:"测试字段（v1.2.7）"`                                                                          // 测试字段（v1.2.7）
 }

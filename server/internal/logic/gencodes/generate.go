@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sort"
 	"strings"
 	"text/template"
 	"time"
@@ -73,6 +74,10 @@ type TplData struct {
 	HasRelSoftDelete bool          // 是否有关联表带软删除（需要 Unscoped）
 	Relations        []TplRelation // 关联表列表
 
+	// 字典
+	HasDictColumns bool     // 是否有使用动态字典的列
+	DictTypes      []string // 需要的字典类型标识列表（去重）
+
 	// 生成步骤控制（从 HeadOps/ColumnOps/AutoOps 转换，模板用 if 条件渲染）
 	HasAdd        bool // 新增按钮（HeadOps: add）
 	HasBatchDel   bool // 批量删除按钮（HeadOps: batchDel + ColumnOps: check）
@@ -127,6 +132,7 @@ type TplColumn struct {
 	IsTimeField   bool
 	IsStatusField bool
 	HasOptions    bool          // 是否有解析出的选项
+	DictType      string        // 字典类型标识（非空表示使用动态字典）
 	RadioOptions  []RadioOption // 兼容旧模板
 	Options       []RadioOption // 通用选项（radio/select/checkbox 共用）
 
@@ -999,6 +1005,21 @@ func initStepFlags(data *TplData, opts OptionsJson) {
 		}
 	}
 
+	// 字典：收集 AllColumns 中非空 DictType
+	dictTypeMap := make(map[string]bool)
+	for _, col := range data.AllColumns {
+		if col.DictType != "" {
+			dictTypeMap[col.DictType] = true
+		}
+	}
+	if len(dictTypeMap) > 0 {
+		data.HasDictColumns = true
+		for dt := range dictTypeMap {
+			data.DictTypes = append(data.DictTypes, dt)
+		}
+		sort.Strings(data.DictTypes)
+	}
+
 	// AutoOps
 	data.HasMenu = strInArray(opts.AutoOps, "genMenuPermissions")
 	data.ForcedCover = strInArray(opts.AutoOps, "forcedCover")
@@ -1057,6 +1078,9 @@ func buildTplColumn(col adminin.GenCodesColumnItem) TplColumn {
 
 	// 状态字段
 	tc.IsStatusField = (col.Name == "status" || col.Name == "state") && col.FormType == "radio"
+
+	// 字典类型
+	tc.DictType = col.DictType
 
 	// 解析选项（radio/select/checkbox/switch 共用）
 	// 优先级：1. 设计器手动配置(dict-options) > 2. 注释字典 > 3. enum/set 提取

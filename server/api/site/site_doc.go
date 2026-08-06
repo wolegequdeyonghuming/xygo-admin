@@ -52,3 +52,14 @@ type DocSearchReq struct {
 type DocSearchRes struct {
 	List []adminin.DocSearchItem `json:"list"`
 }
+
+// ===================== 公开字典接口 =====================
+
+// DictDataReq 按字典类型标识获取字典数据（公开接口，无需登录）
+type DictDataReq struct {
+	g.Meta `path:"/site/dict/data" method:"get" tags:"SiteDict" summary:"字典数据（公开）"`
+	Type   string `p:"type" v:"required#字典类型不能为空" json:"type" dc:"字典标识"`
+}
+type DictDataRes struct {
+	List []adminin.DictDataItem `json:"list" dc:"字典数据列表"`
+}

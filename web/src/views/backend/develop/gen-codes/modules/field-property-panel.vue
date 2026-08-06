@@ -73,7 +73,20 @@
             <ElOption v-for="opt in queryTypes" :key="opt.value" :label="opt.label" :value="opt.value" />
           </ElSelect>
         </div>
-        <!-- 字典类型已移除，使用字段注释中的静态选项映射 -->
+        <!-- 字典类型 -->
+        <div v-if="isOptionField" class="prop-row">
+          <label class="prop-label">字典类型</label>
+          <ElSelect
+            v-model="field.dictType"
+            size="small"
+            class="prop-input"
+            filterable
+            clearable
+            placeholder="选择字典类型（留空用静态选项）"
+          >
+            <ElOption v-for="t in dictTypeOptions" :key="t.value" :label="t.label" :value="t.value" />
+          </ElSelect>
+        </div>
       </div>
 
       <!-- 表格属性 -->
@@ -197,6 +210,7 @@
   import ArtSvgIcon from '@/components/core/base/art-svg-icon/index.vue'
   import { designTypes, snakeToPascal, snakeToCamel, type PropItem } from './field-library'
   import { fetchGenCodesTableSelect, fetchGenCodesColumnList } from '@/api/backend/develop/genCodes'
+  import { fetchDictTypeOptions } from '@/api/backend/system/dict'
 
   // 关联字段配置项
   interface RelationFieldConfig {
@@ -228,6 +242,26 @@
       value,
       label: def.name,
     }))
+  })
+
+  // ==================== 字典类型选择 ====================
+  const dictTypeOptions = ref<{ label: string; value: string }[]>([])
+  let dictTypeLoaded = false
+
+  const loadDictTypeOptions = async () => {
+    if (dictTypeLoaded) return
+    dictTypeLoaded = true
+    try {
+      const res = await fetchDictTypeOptions()
+      dictTypeOptions.value = res.list || []
+    } catch { /* ignore */ }
+  }
+
+  // 判断当前字段是否是选项类（radio/select/checkbox/switch）
+  const isOptionField = computed(() => {
+    if (!props.field) return false
+    const design = props.field.designType || props.field.formType
+    return ['radio', 'select', 'checkbox', 'switch'].includes(design)
   })
 
   // ==================== 关联表选择 ====================
@@ -390,6 +424,9 @@
   // 监听 field 变化，如果是 remoteSelect 类型则加载相关数据
   watch(() => props.field, async (newField) => {
     if (!newField) return
+
+    // 懒加载字典类型选项
+    loadDictTypeOptions()
 
     // 恢复选项编辑器数据
     const dictStr = newField._formProps?.['dict-options'] || ''

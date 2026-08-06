@@ -10,6 +10,7 @@
 
 import { AppRouteRecordRaw } from '@/utils/router'
 import { ADMIN_BASE_PATH } from '@/router/routesAlias'
+import { frontendRoutes } from '@/router/frontend'
 
 /**
  * 静态路由配置（不需要权限就能访问的路由）
@@ -17,6 +18,8 @@ import { ADMIN_BASE_PATH } from '@/router/routesAlias'
  * 路由隔离设计（对齐 BuildAdmin）：
  *   - 后台管理：/admin 下（动态注册，此处只放登录/错误/catch-all）
  *   - 根路径 / 直接重定向到后台首页，不再加载官网介绍页
+ *   - 前台文档/会员页（/docs、/user/*）恢复注册，仅通过手动输入 URL 访问，
+ *     门户首页保持下线
  *
  * 注意事项：
  * 1、path、name 不要和动态路由冲突
@@ -88,6 +91,9 @@ export const staticRoutes: AppRouteRecordRaw[] = [
     path: `${ADMIN_BASE_PATH}`,
     redirect: `${ADMIN_BASE_PATH}/dashboard/console`
   },
+
+  // ===== 前台文档 / 会员页面（原 URL，仅手动输入进入）=====
+  ...frontendRoutes,
 
   // ===== 全局 404 兜底（必须放最后）=====
   {

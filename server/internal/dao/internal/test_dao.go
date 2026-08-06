@@ -11,68 +11,68 @@ import (
 	"github.com/gogf/gf/v2/frame/g"
 )
 
-// AddonDao is the data access object for the table xy_addon.
-type AddonDao struct {
+// TestDaoDao is the data access object for the table xy_test_dao.
+type TestDaoDao struct {
 	table    string             // table is the underlying table name of the DAO.
 	group    string             // group is the database configuration group name of the current DAO.
-	columns  AddonColumns       // columns contains all the column names of Table for convenient usage.
+	columns  TestDaoColumns     // columns contains all the column names of Table for convenient usage.
 	handlers []gdb.ModelHandler // handlers for customized model modification.
 }
 
-// AddonColumns defines and stores column names for the table xy_addon.
-type AddonColumns struct {
-	Id            string //
-	Name          string //
-	Version       string //
-	Title         string //
-	Status        string //
-	InstalledAt   string //
-	UninstalledAt string //
+// TestDaoColumns defines and stores column names for the table xy_test_dao.
+type TestDaoColumns struct {
+	Id        string // 主键
+	Title     string // 标题
+	Content   string // 内容
+	Sort      string // 排序
+	Status    string // 状态
+	CreatedAt string // 创建时间
+	UpdatedAt string // 更新时间
 }
 
-// addonColumns holds the columns for the table xy_addon.
-var addonColumns = AddonColumns{
-	Id:            "id",
-	Name:          "name",
-	Version:       "version",
-	Title:         "title",
-	Status:        "status",
-	InstalledAt:   "installed_at",
-	UninstalledAt: "uninstalled_at",
+// testDaoColumns holds the columns for the table xy_test_dao.
+var testDaoColumns = TestDaoColumns{
+	Id:        "id",
+	Title:     "title",
+	Content:   "content",
+	Sort:      "sort",
+	Status:    "status",
+	CreatedAt: "created_at",
+	UpdatedAt: "updated_at",
 }
 
-// NewAddonDao creates and returns a new DAO object for table data access.
-func NewAddonDao(handlers ...gdb.ModelHandler) *AddonDao {
-	return &AddonDao{
+// NewTestDaoDao creates and returns a new DAO object for table data access.
+func NewTestDaoDao(handlers ...gdb.ModelHandler) *TestDaoDao {
+	return &TestDaoDao{
 		group:    "default",
-		table:    "xy_addon",
-		columns:  addonColumns,
+		table:    "xy_test_dao",
+		columns:  testDaoColumns,
 		handlers: handlers,
 	}
 }
 
 // DB retrieves and returns the underlying raw database management object of the current DAO.
-func (dao *AddonDao) DB() gdb.DB {
+func (dao *TestDaoDao) DB() gdb.DB {
 	return g.DB(dao.group)
 }
 
 // Table returns the table name of the current DAO.
-func (dao *AddonDao) Table() string {
+func (dao *TestDaoDao) Table() string {
 	return dao.table
 }
 
 // Columns returns all column names of the current DAO.
-func (dao *AddonDao) Columns() AddonColumns {
+func (dao *TestDaoDao) Columns() TestDaoColumns {
 	return dao.columns
 }
 
 // Group returns the database configuration group name of the current DAO.
-func (dao *AddonDao) Group() string {
+func (dao *TestDaoDao) Group() string {
 	return dao.group
 }
 
 // Ctx creates and returns a Model for the current DAO. It automatically sets the context for the current operation.
-func (dao *AddonDao) Ctx(ctx context.Context) *gdb.Model {
+func (dao *TestDaoDao) Ctx(ctx context.Context) *gdb.Model {
 	model := dao.DB().Model(dao.table)
 	for _, handler := range dao.handlers {
 		model = handler(model)
@@ -86,6 +86,6 @@ func (dao *AddonDao) Ctx(ctx context.Context) *gdb.Model {
 //
 // Note: Do not commit or roll back the transaction in function f,
 // as it is automatically handled by this function.
-func (dao *AddonDao) Transaction(ctx context.Context, f func(ctx context.Context, tx gdb.TX) error) (err error) {
+func (dao *TestDaoDao) Transaction(ctx context.Context, f func(ctx context.Context, tx gdb.TX) error) (err error) {
 	return dao.Ctx(ctx).Transaction(ctx, f)
 }

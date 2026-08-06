@@ -25,4 +25,5 @@ type SysAttachment struct {
 	Sha1       any // sha1摘要
 	CreateTime any // 创建时间
 	UpdateTime any // 更新时间
+	TenantId   any // 所属租户ID（0=平台）
 }

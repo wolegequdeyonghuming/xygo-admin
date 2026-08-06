@@ -17,7 +17,13 @@
       </ElFormItem>
 {{- else if eq .DesignType "radio"}}
       <ElFormItem label="{{.Label}}" prop="{{.TsName}}">
-{{- if .HasOptions}}
+{{- if .DictType}}
+        <ElRadioGroup v-model="formData.{{.TsName}}">
+          <ElRadio v-for="opt in dictStore.getDictData('{{.DictType}}')" :key="opt.value" :value="opt.value">
+            {{ opt.label }}
+          </ElRadio>
+        </ElRadioGroup>
+{{- else if .HasOptions}}
         <ElRadioGroup v-model="formData.{{.TsName}}">
 {{- range .Options}}
           <ElRadio :value="{{jsValue .Value}}">{{.Label}}</ElRadio>
@@ -33,7 +39,13 @@
       </ElFormItem>
 {{- else if eq .DesignType "checkbox"}}
       <ElFormItem label="{{.Label}}" prop="{{.TsName}}">
-{{- if .HasOptions}}
+{{- if .DictType}}
+        <ElCheckboxGroup v-model="formData.{{.TsName}}">
+          <ElCheckbox v-for="opt in dictStore.getDictData('{{.DictType}}')" :key="opt.value" :value="opt.value">
+            {{ opt.label }}
+          </ElCheckbox>
+        </ElCheckboxGroup>
+{{- else if .HasOptions}}
         <ElCheckboxGroup v-model="formData.{{.TsName}}">
 {{- range .Options}}
           <ElCheckbox :value="{{jsValue .Value}}">{{.Label}}</ElCheckbox>
@@ -84,7 +96,11 @@
       </ElFormItem>
 {{- else if or (eq .DesignType "select") (eq .DesignType "selects")}}
       <ElFormItem label="{{.Label}}" prop="{{.TsName}}">
-{{- if .HasOptions}}
+{{- if .DictType}}
+        <ElSelect v-model="formData.{{.TsName}}" placeholder="请选择{{.Label}}" clearable{{if eq .DesignType "selects"}} multiple{{end}}>
+          <ElOption v-for="opt in dictStore.getDictData('{{.DictType}}')" :key="opt.value" :label="opt.label" :value="opt.value" />
+        </ElSelect>
+{{- else if .HasOptions}}
         <ElSelect v-model="formData.{{.TsName}}" placeholder="请选择{{.Label}}" clearable{{if eq .DesignType "selects"}} multiple{{end}}>
 {{- range .Options}}
           <ElOption :value="{{jsValue .Value}}" label="{{.Label}}" />
@@ -172,6 +188,9 @@
   import ArtFileSelector from '@/components/core/forms/art-file-selector/index.vue'
   import ArtIconSelector from '@/components/core/forms/art-icon-selector/index.vue'
   import ArtWangEditor from '@/components/core/forms/art-wang-editor/index.vue'
+  import { useDictStore } from '@/store/modules/dict'
+
+  const dictStore = useDictStore()
 
   const props = defineProps<{
     visible: boolean
@@ -237,22 +256,28 @@
 {{- end}}
 {{- end}}
 
-  watch(() => props.visible, (val) => {
-    if (val && props.type === 'edit' && props.editData) {
-      Object.assign(formData, props.editData)
+  watch(() => props.visible, async (val) => {
+    if (val) {
+{{- if .HasDictColumns}}
+      // 预加载字典数据
+      await dictStore.preload([{{range $i, $dt := .DictTypes}}{{if $i}}, {{end}}'{{$dt}}'{{end}}])
+{{- end}}
+      if (props.type === 'edit' && props.editData) {
+        Object.assign(formData, props.editData)
 {{- if .HasRelations}}
-      // 编辑时加载已选关联项
+        // 编辑时加载已选关联项
 {{- range $rel := .Relations}}
-      load{{$rel.RelationName}}Options('')
+        load{{$rel.RelationName}}Options('')
 {{- end}}
 {{- end}}
-    } else if (val) {
-      Object.assign(formData, defaultForm())
+      } else {
+        Object.assign(formData, defaultForm())
 {{- if .HasRelations}}
 {{- range $rel := .Relations}}
-      load{{$rel.RelationName}}Options('')
+        load{{$rel.RelationName}}Options('')
 {{- end}}
 {{- end}}
+      }
     }
   })
 
