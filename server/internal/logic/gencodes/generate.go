@@ -550,33 +550,55 @@ func executeMenuORM(ctx context.Context, data *TplData) error {
 	var parentId int64
 	var pageId int64
 
+	// 页面相对路径（详情页等使用），顶级模式分离目录与页面，避免路由重复
+	pagePath := data.ModulePath
 	if data.MenuPid == 0 {
 		// ======= 顶级模式：创建目录(type=1) + 页面(type=2) + 按钮(type=3) =======
-
-		// 1. 创建目录
-		dirMenu := baseMenu(0, 1, data.TableComment, data.VarName+"Dir",
-			"/"+data.ModulePath, "", data.MenuIcon, "", 0, 0, data.MenuSort)
-		dirId, err := db.Ctx(ctx).Model(menuTable).Data(dirMenu).InsertAndGetId()
-		if err != nil {
-			return fmt.Errorf("插入目录菜单失败: %w", err)
+		var dirPath string
+		if idx := strings.LastIndex(data.ModulePath, "/"); idx >= 0 {
+			dirPath = data.ModulePath[:idx]    // order
+			pagePath = data.ModulePath[idx+1:] // biz-order
 		}
-		parentId = dirId
 
-		// 2. 创建页面菜单
-		pageMenu := baseMenu(parentId, 2, data.TableComment+"列表", data.VarName,
-			data.ModulePath, data.MenuComponentPath+"/index", "",
-			fmt.Sprintf(`["GET %s/list"]`, data.ApiPrefix), 0, 1, 1)
-		pid, err := db.Ctx(ctx).Model(menuTable).Data(pageMenu).InsertAndGetId()
-		if err != nil {
-			return fmt.Errorf("插入页面菜单失败: %w", err)
+		if dirPath != "" {
+			// 1. 创建目录
+			dirMenu := baseMenu(0, 1, data.TableComment, data.VarName+"Dir",
+				"/"+dirPath, "", data.MenuIcon, "", 0, 0, data.MenuSort)
+			dirId, err := db.Ctx(ctx).Model(menuTable).Data(dirMenu).InsertAndGetId()
+			if err != nil {
+				return fmt.Errorf("插入目录菜单失败: %w", err)
+			}
+			parentId = dirId
+
+			// 2. 创建页面菜单（相对路径）
+			pageMenu := baseMenu(parentId, 2, data.TableComment+"列表", data.VarName,
+				pagePath, data.MenuComponentPath+"/index", "",
+				fmt.Sprintf(`["GET %s/list"]`, data.ApiPrefix), 0, 1, 1)
+			pid, err := db.Ctx(ctx).Model(menuTable).Data(pageMenu).InsertAndGetId()
+			if err != nil {
+				return fmt.Errorf("插入页面菜单失败: %w", err)
+			}
+			pageId = pid
+		} else {
+			// 单级路径：直接创建顶级页面（不建目录）
+			parentId = 0
+			pagePath = "/" + data.ModulePath
+			pageMenu := baseMenu(0, 2, data.TableComment+"列表", data.VarName,
+				pagePath, data.MenuComponentPath+"/index", "",
+				fmt.Sprintf(`["GET %s/list"]`, data.ApiPrefix), 0, 1, data.MenuSort)
+			pid, err := db.Ctx(ctx).Model(menuTable).Data(pageMenu).InsertAndGetId()
+			if err != nil {
+				return fmt.Errorf("插入页面菜单失败: %w", err)
+			}
+			pageId = pid
 		}
-		pageId = pid
 	} else {
 		// ======= 挂载模式：在已有目录下创建页面(type=2) + 按钮(type=3) =======
 		parentId = int64(data.MenuPid)
+		pagePath = data.RouteName
 
 		pageMenu := baseMenu(parentId, 2, data.TableComment, data.VarName,
-			data.ModulePath, data.MenuComponentPath+"/index", data.MenuIcon,
+			pagePath, data.MenuComponentPath+"/index", data.MenuIcon,
 			fmt.Sprintf(`["GET %s/list"]`, data.ApiPrefix), 0, 1, data.MenuSort)
 		pid, err := db.Ctx(ctx).Model(menuTable).Data(pageMenu).InsertAndGetId()
 		if err != nil {
@@ -603,7 +625,7 @@ func executeMenuORM(ctx context.Context, data *TplData) error {
 				detailParentId = int64(data.MenuPid)
 			}
 			detailMenu := baseMenu(detailParentId, 2, data.TableComment+"详情", data.VarName+"Detail",
-				data.ModulePath+"/detail", data.MenuComponentPath+"/detail/index", "",
+				pagePath+"/detail", data.MenuComponentPath+"/detail/index", "",
 				fmt.Sprintf(`["GET %s/view"]`, data.ApiPrefix), 1, 0, 0)
 			detailMenu["active_path"] = "/" + data.ModulePath
 			if _, err := db.Ctx(ctx).Model(menuTable).Data(detailMenu).Insert(); err != nil {
@@ -798,7 +820,8 @@ func buildTplData(ctx context.Context, in *adminin.GenCodesEditInp, opts Options
 	}
 	apiDir := genDir(tpl.ApiPath, "api")
 	inputDir := genDir(tpl.InputPath, "input")
-	ctrlDir := genDir(tpl.ControllerPath, "controller")
+	// 控制器必须与 ControllerV1 同包（admin），不随 GenPaths 变化，否则 GoFrame 无法注册
+	ctrlDir := tpl.ControllerPath
 
 	data := &TplData{
 		VarName:      varName,
@@ -1387,12 +1410,7 @@ func getTplFiles(ctx context.Context, data *TplData, opts OptionsJson) []tplFile
 					files[i].OutPath = p
 				}
 			case "controller.go.tpl":
-				if p := opts.GenPaths["controller"]; p != "" {
-					if !hasExt(p) {
-						p = genAppendSuffix(p, files[i].OutPath, data.ModulePath)
-					}
-					files[i].OutPath = p
-				}
+				// 控制器必须与 ControllerV1 同包，路径不随 GenPaths 变化
 			case "logic.go.tpl", "logic_tree.go.tpl":
 				if p := opts.GenPaths["logic"]; p != "" {
 					if !hasExt(p) {

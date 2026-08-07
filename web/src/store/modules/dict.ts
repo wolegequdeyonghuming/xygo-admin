@@ -17,7 +17,7 @@
  */
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { adminRequest } from '@/utils/http'
+import { siteRequest } from '@/utils/http'
 
 export interface DictItem {
   label: string
@@ -27,7 +27,7 @@ export interface DictItem {
   isDefault: number
 }
 
-const SITE_DICT_URL = '/site/dict/data'
+const SITE_DICT_URL = '/dict/data'
 
 export const useDictStore = defineStore('dictStore', () => {
   const cache = ref<Record<string, DictItem[]>>({})
@@ -50,7 +50,7 @@ export const useDictStore = defineStore('dictStore', () => {
 
     loading.value[dictType] = true
 
-    const promise: Promise<DictItem[]> = adminRequest
+    const promise: Promise<DictItem[]> = siteRequest
       .get<{ list: DictItem[] }>({
         url: SITE_DICT_URL,
         params: { type: dictType }
