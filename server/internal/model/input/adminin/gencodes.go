@@ -140,26 +140,27 @@ type GenCodesColumnListInp struct {
 
 // GenCodesColumnItem 字段配置项
 type GenCodesColumnItem struct {
-	Id         uint64 `json:"id"         dc:"ID"`
-	GenId      uint64 `json:"genId"      dc:"关联ID"`
-	Name       string `json:"name"       dc:"字段名"`
-	GoName     string `json:"goName"     dc:"Go字段名"`
-	TsName     string `json:"tsName"     dc:"TS字段名"`
-	DbType     string `json:"dbType"     dc:"数据库类型"`
-	GoType     string `json:"goType"     dc:"Go类型"`
-	TsType     string `json:"tsType"     dc:"TS类型"`
-	Comment    string `json:"comment"    dc:"注释"`
-	IsPk       int    `json:"isPk"       dc:"主键"`
-	IsRequired int    `json:"isRequired" dc:"必填"`
-	IsList     int    `json:"isList"     dc:"表格显示"`
-	IsEdit     int    `json:"isEdit"     dc:"表单显示"`
-	IsQuery    int    `json:"isQuery"    dc:"搜索"`
-	QueryType  string `json:"queryType"  dc:"查询方式"`
-	FormType   string `json:"formType"   dc:"表单组件"`
-	DesignType string `json:"designType" dc:"设计类型"`
-	Extra      string `json:"extra"      dc:"扩展配置JSON"`
-	DictType   string `json:"dictType"   dc:"字典类型"`
-	Sort       int    `json:"sort"       dc:"排序"`
+	Id              uint64 `json:"id"         dc:"ID"`
+	GenId           uint64 `json:"genId"      dc:"关联ID"`
+	Name            string `json:"name"       dc:"字段名"`
+	GoName          string `json:"goName"     dc:"Go字段名"`
+	TsName          string `json:"tsName"     dc:"TS字段名"`
+	DbType          string `json:"dbType"     dc:"数据库类型"`
+	GoType          string `json:"goType"     dc:"Go类型"`
+	TsType          string `json:"tsType"     dc:"TS类型"`
+	Comment         string `json:"comment"    dc:"注释"`
+	IsPk            int    `json:"isPk"       dc:"主键"`
+	IsRequired      int    `json:"isRequired" dc:"必填"`
+	IsList          int    `json:"isList"     dc:"表格显示"`
+	IsEdit          int    `json:"isEdit"     dc:"表单显示"`
+	IsQuery         int    `json:"isQuery"    dc:"搜索"`
+	QueryType       string `json:"queryType"  dc:"查询方式"`
+	FormType        string `json:"formType"   dc:"表单组件"`
+	DesignType      string `json:"designType" dc:"设计类型"`
+	Extra           string `json:"extra"      dc:"扩展配置JSON"`
+	DictType        string `json:"dictType"   dc:"字典类型"`
+	IsAutoIncrement int    `json:"isAutoIncrement" dc:"是否自增"`
+	Sort            int    `json:"sort"       dc:"排序"`
 }
 
 type GenCodesColumnListModel struct {
@@ -175,11 +176,11 @@ type GenCodesSyncFieldsInp struct {
 
 // FieldDiff 单个字段的差异
 type FieldDiff struct {
-	Name      string `json:"name"      dc:"字段名"`
-	Action    string `json:"action"    dc:"操作: add/drop/modify"`
-	Detail    string `json:"detail"    dc:"变更详情"`
-	SQL       string `json:"sql"       dc:"DDL SQL"`
-	IsRisky   bool   `json:"isRisky"   dc:"是否有风险（如删除、缩小类型）"`
+	Name    string `json:"name"      dc:"字段名"`
+	Action  string `json:"action"    dc:"操作: add/drop/modify"`
+	Detail  string `json:"detail"    dc:"变更详情"`
+	SQL     string `json:"sql"       dc:"DDL SQL"`
+	IsRisky bool   `json:"isRisky"   dc:"是否有风险（如删除、缩小类型）"`
 }
 
 type GenCodesSyncFieldsModel struct {
@@ -195,9 +196,9 @@ type GenCodesExecuteDDLInp struct {
 // ==================== 创建数据表 ====================
 
 type GenCodesCreateTableInp struct {
-	TableName    string               `json:"tableName"    v:"required#表名不能为空"  dc:"表名"`
-	TableComment string               `json:"tableComment" v:"required#表注释不能为空" dc:"表注释"`
-	Columns      []CreateTableColumn  `json:"columns"      v:"required#字段不能为空"  dc:"字段列表"`
+	TableName    string              `json:"tableName"    v:"required#表名不能为空"  dc:"表名"`
+	TableComment string              `json:"tableComment" v:"required#表注释不能为空" dc:"表注释"`
+	Columns      []CreateTableColumn `json:"columns"      v:"required#字段不能为空"  dc:"字段列表"`
 }
 
 type CreateTableColumn struct {

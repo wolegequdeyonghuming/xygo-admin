@@ -223,15 +223,16 @@ func (s *sGenCodes) ColumnList(ctx context.Context, in *adminin.GenCodesColumnLi
 	list := make([]adminin.GenCodesColumnItem, 0, len(columns))
 	for i, col := range columns {
 		item := adminin.GenCodesColumnItem{
-			Name:    col.ColumnName,
-			GoName:  snakeToPascal(col.ColumnName),
-			TsName:  snakeToCamel(col.ColumnName),
-			DbType:  col.ColumnType,
-			GoType:  dialect.TypeToGoType(col.DataType, col.ColumnType),
-			TsType:  dialect.TypeToTsType(col.DataType),
-			Comment: col.ColumnComment,
-			IsPk:    boolToInt(col.ColumnKey == "PRI"),
-			Sort:    i + 1,
+			Name:            col.ColumnName,
+			GoName:          snakeToPascal(col.ColumnName),
+			TsName:          snakeToCamel(col.ColumnName),
+			DbType:          col.ColumnType,
+			GoType:          dialect.TypeToGoType(col.DataType, col.ColumnType),
+			TsType:          dialect.TypeToTsType(col.DataType),
+			Comment:         col.ColumnComment,
+			IsPk:            boolToInt(col.ColumnKey == "PRI"),
+			IsAutoIncrement: boolToInt(strings.Contains(strings.ToLower(col.Extra), "auto_increment")),
+			Sort:            i + 1,
 		}
 
 		// 推断 designType（核心）

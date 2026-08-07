@@ -25,18 +25,19 @@ import (
 
 // TplData 模板渲染的数据上下文
 type TplData struct {
-	VarName      string // PascalCase 实体名，如 BizArticle
-	PkgName      string // 包名(小写)，如 bizarticle
-	DaoName      string // DAO 名称(去前缀后PascalCase)，如 BizArticle
-	RouteName    string // 路由名(kebab-case)，如 bizArticle
-	ModulePath   string // 前端模块路径
-	TableName    string // 表名
-	TableComment string // 表注释
-	CssClass     string // CSS 类名(kebab-case)
-	FilePrefix   string // 文件前缀(kebab-case)
-	PkColumn     string // 主键字段名(数据库)
-	PkGoName     string // 主键 Go 名称
-	PkTsName     string // 主键 TS 名称
+	VarName           string // PascalCase 实体名，如 BizArticle
+	PkgName           string // 包名(小写)，如 bizarticle
+	DaoName           string // DAO 名称(去前缀后PascalCase)，如 BizArticle
+	RouteName         string // 路由名(kebab-case)，如 bizArticle
+	ModulePath        string // 前端模块路径
+	TableName         string // 表名
+	TableComment      string // 表注释
+	CssClass          string // CSS 类名(kebab-case)
+	FilePrefix        string // 文件前缀(kebab-case)
+	PkColumn          string // 主键字段名(数据库)
+	PkGoName          string // 主键 Go 名称
+	PkTsName          string // 主键 TS 名称
+	PkIsAutoIncrement bool   // 主键是否自增
 
 	// 树表相关
 	GenType           int
@@ -113,28 +114,29 @@ type TplData struct {
 
 // TplColumn 模板用的字段数据
 type TplColumn struct {
-	Name          string
-	GoName        string
-	TsName        string
-	GoType        string
-	TsType        string
-	DbType        string
-	Comment       string
-	Label         string // 显示标签(去掉冒号后的部分)
-	FormType      string
-	DesignType    string // 设计类型
-	Render        string // 用户选择的列渲染: none|switch|image|images|tag|tags|url|datetime|color|icon
-	Operator      string // 用户选择的搜索操作符: eq|like|between 等
-	QueryType     string
-	Required      bool
-	MinWidth      int
-	DefaultValue  string // TS 默认值
-	IsTimeField   bool
-	IsStatusField bool
-	HasOptions    bool          // 是否有解析出的选项
-	DictType      string        // 字典类型标识（非空表示使用动态字典）
-	RadioOptions  []RadioOption // 兼容旧模板
-	Options       []RadioOption // 通用选项（radio/select/checkbox 共用）
+	Name            string
+	GoName          string
+	TsName          string
+	GoType          string
+	TsType          string
+	DbType          string
+	Comment         string
+	Label           string // 显示标签(去掉冒号后的部分)
+	FormType        string
+	DesignType      string // 设计类型
+	Render          string // 用户选择的列渲染: none|switch|image|images|tag|tags|url|datetime|color|icon
+	Operator        string // 用户选择的搜索操作符: eq|like|between 等
+	QueryType       string
+	Required        bool
+	MinWidth        int
+	DefaultValue    string // TS 默认值
+	IsTimeField     bool
+	IsStatusField   bool
+	IsAutoIncrement bool          // 是否自增（用于判断主键是否需在 INSERT 中显式赋值）
+	HasOptions      bool          // 是否有解析出的选项
+	DictType        string        // 字典类型标识（非空表示使用动态字典）
+	RadioOptions    []RadioOption // 兼容旧模板
+	Options         []RadioOption // 通用选项（radio/select/checkbox 共用）
 
 	// 关联表配置（remoteSelect/remoteSelects）
 	IsRemoteSelect       bool             // 是否远程下拉
@@ -798,11 +800,17 @@ func buildTplData(ctx context.Context, in *adminin.GenCodesEditInp, opts Options
 	pkColumn := "id"
 	pkGoName := "Id"
 	pkTsName := "id"
+	pkIsAutoIncrement := true
 	for _, col := range in.Columns {
 		if col.IsPk == 1 {
 			pkColumn = col.Name
 			pkGoName = col.GoName
 			pkTsName = col.TsName
+			// 自增判断：优先显式标记；否则字符串主键（UUID/时间戳等）视为非自增
+			pkIsAutoIncrement = col.IsAutoIncrement == 1
+			if col.IsAutoIncrement != 1 && col.TsType == "string" {
+				pkIsAutoIncrement = false
+			}
 			break
 		}
 	}
@@ -824,25 +832,26 @@ func buildTplData(ctx context.Context, in *adminin.GenCodesEditInp, opts Options
 	ctrlDir := tpl.ControllerPath
 
 	data := &TplData{
-		VarName:      varName,
-		PkgName:      pkgName,
-		DaoName:      daoName,
-		RouteName:    routeName,
-		ModulePath:   modulePath,
-		TableName:    in.TableName,
-		TableComment: in.TableComment,
-		CssClass:     camelToKebab(lcFirst(varName)),
-		FilePrefix:   camelToKebab(lcFirst(varName)),
-		PkColumn:     pkColumn,
-		PkGoName:     pkGoName,
-		PkTsName:     pkTsName,
-		GenType:      opts.GenType,
-		MenuPid:      opts.Menu.Pid,
-		MenuIcon:     opts.Menu.Icon,
-		MenuSort:     opts.Menu.Sort,
-		PermPrefix:   "/admin/" + routeName,
-		ApiPrefix:    "/admin/" + routeName,
-		ResourceName: strings.TrimPrefix(in.TableName, tablePrefix),
+		VarName:           varName,
+		PkgName:           pkgName,
+		DaoName:           daoName,
+		RouteName:         routeName,
+		ModulePath:        modulePath,
+		TableName:         in.TableName,
+		TableComment:      in.TableComment,
+		CssClass:          camelToKebab(lcFirst(varName)),
+		FilePrefix:        camelToKebab(lcFirst(varName)),
+		PkColumn:          pkColumn,
+		PkGoName:          pkGoName,
+		PkTsName:          pkTsName,
+		PkIsAutoIncrement: pkIsAutoIncrement,
+		GenType:           opts.GenType,
+		MenuPid:           opts.Menu.Pid,
+		MenuIcon:          opts.Menu.Icon,
+		MenuSort:          opts.Menu.Sort,
+		PermPrefix:        "/admin/" + routeName,
+		ApiPrefix:         "/admin/" + routeName,
+		ResourceName:      strings.TrimPrefix(in.TableName, tablePrefix),
 
 		// 默认主包模式路径 - 从 GenPaths 覆盖值或模板配置推导
 		GoApiImport:        "xygo/" + apiDir,
@@ -1086,17 +1095,18 @@ type ColumnExtra struct {
 
 func buildTplColumn(col adminin.GenCodesColumnItem) TplColumn {
 	tc := TplColumn{
-		Name:       col.Name,
-		GoName:     col.GoName,
-		TsName:     col.TsName,
-		GoType:     col.GoType,
-		TsType:     col.TsType,
-		DbType:     col.DbType,
-		Comment:    col.Comment,
-		FormType:   col.FormType,
-		DesignType: col.DesignType,
-		QueryType:  col.QueryType,
-		Required:   col.IsRequired == 1,
+		Name:            col.Name,
+		GoName:          col.GoName,
+		TsName:          col.TsName,
+		GoType:          col.GoType,
+		TsType:          col.TsType,
+		DbType:          col.DbType,
+		Comment:         col.Comment,
+		FormType:        col.FormType,
+		DesignType:      col.DesignType,
+		QueryType:       col.QueryType,
+		Required:        col.IsRequired == 1,
+		IsAutoIncrement: col.IsAutoIncrement == 1,
 	}
 
 	// Label: 提取注释中冒号前的部分
@@ -1667,7 +1677,7 @@ func tsDefaultValue(tsType, formType string) string {
 	switch formType {
 	case "switch":
 		return "0"
-	case "inputNumber":
+	case "inputNumber", "number", "float", "weigh":
 		return "0"
 	}
 	switch tsType {

@@ -290,12 +290,12 @@
         columnComment: col.comment || col.columnComment || '',
         dataType: col.dbType || col.dataType || '',
       }))
-      // 自动推导显示Label字段（优先 name > title > label > nickname，都没有则留空）
+      // 自动推导显示Label字段（优先 name > title > label > nickname > realname > username，都没有则留空）
       if (props.field?._formProps) {
         const currentField = props.field._formProps['remote-field']
         const hasField = (n: string) => remoteColumns.value.some((c: any) => c.columnName === n)
         if (!currentField || !hasField(currentField)) {
-          const candidates = ['name', 'title', 'label', 'nickname', 'username']
+          const candidates = ['name', 'title', 'label', 'nickname', 'realname', 'username']
           const found = candidates.find(c => hasField(c))
           props.field._formProps['remote-field'] = found || ''
         }
