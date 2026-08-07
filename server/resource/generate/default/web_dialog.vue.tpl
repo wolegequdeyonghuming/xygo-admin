@@ -20,7 +20,7 @@
 {{- if .DictType}}
         <ElRadioGroup v-model="formData.{{.TsName}}">
           <ElRadio v-for="opt in dictStore.getDictData('{{.DictType}}')" :key="opt.value" :value="opt.value">
-            {{ opt.label }}
+            {{"{{"}} opt.label {{"}}"}}
           </ElRadio>
         </ElRadioGroup>
 {{- else if .HasOptions}}
@@ -42,7 +42,7 @@
 {{- if .DictType}}
         <ElCheckboxGroup v-model="formData.{{.TsName}}">
           <ElCheckbox v-for="opt in dictStore.getDictData('{{.DictType}}')" :key="opt.value" :value="opt.value">
-            {{ opt.label }}
+            {{"{{"}} opt.label {{"}}"}}
           </ElCheckbox>
         </ElCheckboxGroup>
 {{- else if .HasOptions}}
