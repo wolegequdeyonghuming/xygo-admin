@@ -460,8 +460,9 @@ func getMenuPath(ctx context.Context, menuId int) string {
 	if err != nil || val.IsEmpty() {
 		return ""
 	}
-	// 清理 path：去掉前导斜杠
+	// 清理 path：去掉前导斜杠和可能残留的文件系统路径前缀
 	p := strings.TrimPrefix(val.String(), "/")
+	p = strings.TrimPrefix(p, "../web/src/")
 	return p
 }
 
@@ -554,7 +555,7 @@ func executeMenuORM(ctx context.Context, data *TplData) error {
 
 		// 1. 创建目录
 		dirMenu := baseMenu(0, 1, data.TableComment, data.VarName+"Dir",
-			"/"+data.RouteName, "", data.MenuIcon, "", 0, 0, data.MenuSort)
+			"/"+data.ModulePath, "", data.MenuIcon, "", 0, 0, data.MenuSort)
 		dirId, err := db.Ctx(ctx).Model(menuTable).Data(dirMenu).InsertAndGetId()
 		if err != nil {
 			return fmt.Errorf("插入目录菜单失败: %w", err)
@@ -563,7 +564,7 @@ func executeMenuORM(ctx context.Context, data *TplData) error {
 
 		// 2. 创建页面菜单
 		pageMenu := baseMenu(parentId, 2, data.TableComment+"列表", data.VarName,
-			data.RouteName, data.MenuComponentPath+"/index", "",
+			data.ModulePath, data.MenuComponentPath+"/index", "",
 			fmt.Sprintf(`["GET %s/list"]`, data.ApiPrefix), 0, 1, 1)
 		pid, err := db.Ctx(ctx).Model(menuTable).Data(pageMenu).InsertAndGetId()
 		if err != nil {
@@ -575,7 +576,7 @@ func executeMenuORM(ctx context.Context, data *TplData) error {
 		parentId = int64(data.MenuPid)
 
 		pageMenu := baseMenu(parentId, 2, data.TableComment, data.VarName,
-			data.RouteName, data.MenuComponentPath+"/index", data.MenuIcon,
+			data.ModulePath, data.MenuComponentPath+"/index", data.MenuIcon,
 			fmt.Sprintf(`["GET %s/list"]`, data.ApiPrefix), 0, 1, data.MenuSort)
 		pid, err := db.Ctx(ctx).Model(menuTable).Data(pageMenu).InsertAndGetId()
 		if err != nil {
@@ -602,9 +603,9 @@ func executeMenuORM(ctx context.Context, data *TplData) error {
 				detailParentId = int64(data.MenuPid)
 			}
 			detailMenu := baseMenu(detailParentId, 2, data.TableComment+"详情", data.VarName+"Detail",
-				data.RouteName+"/detail", data.MenuComponentPath+"/detail/index", "",
+				data.ModulePath+"/detail", data.MenuComponentPath+"/detail/index", "",
 				fmt.Sprintf(`["GET %s/view"]`, data.ApiPrefix), 1, 0, 0)
-			detailMenu["active_path"] = "/" + data.RouteName
+			detailMenu["active_path"] = "/" + data.ModulePath
 			if _, err := db.Ctx(ctx).Model(menuTable).Data(detailMenu).Insert(); err != nil {
 				g.Log().Warningf(ctx, "[MenuORM] insert detail page error: %v", err)
 			}
@@ -781,6 +782,21 @@ func buildTplData(ctx context.Context, in *adminin.GenCodesEditInp, opts Options
 
 	tpl := genconfig.GetDefaultTemplate(ctx)
 
+	// 从 GenPaths 覆盖值或模板配置推导 Go 包目录（优先 GenPaths）
+	genDir := func(tplPath, genKey string) string {
+		if opts.GenPaths != nil && opts.GenPaths[genKey] != "" {
+			p := opts.GenPaths[genKey]
+			if hasExt(p) {
+				return filepath.Dir(p)
+			}
+			return p
+		}
+		return tplPath
+	}
+	apiDir := genDir(tpl.ApiPath, "api")
+	inputDir := genDir(tpl.InputPath, "input")
+	ctrlDir := genDir(tpl.ControllerPath, "controller")
+
 	data := &TplData{
 		VarName:      varName,
 		PkgName:      pkgName,
@@ -802,13 +818,13 @@ func buildTplData(ctx context.Context, in *adminin.GenCodesEditInp, opts Options
 		ApiPrefix:    "/admin/" + routeName,
 		ResourceName: strings.TrimPrefix(in.TableName, tablePrefix),
 
-		// 默认主包模式路径 - 从模板配置推导
-		GoApiImport:        "xygo/" + tpl.ApiPath,
-		GoApiPkg:           filepath.Base(tpl.ApiPath),
-		GoInputImport:      "xygo/" + tpl.InputPath,
-		GoInputPkg:         filepath.Base(tpl.InputPath),
+		// 默认主包模式路径 - 从 GenPaths 覆盖值或模板配置推导
+		GoApiImport:        "xygo/" + apiDir,
+		GoApiPkg:           filepath.Base(apiDir),
+		GoInputImport:      "xygo/" + inputDir,
+		GoInputPkg:         filepath.Base(inputDir),
 		GoServiceImport:    "xygo/internal/service",
-		GoControllerPkg:    filepath.Base(tpl.ControllerPath),
+		GoControllerPkg:    filepath.Base(ctrlDir),
 		ControllerReceiver: "ControllerV1",
 	}
 
@@ -986,18 +1002,22 @@ func strInArray(arr []string, s string) bool {
 }
 
 // initStepFlags 将前端传来的选项数组转换为布尔标记（对齐 HotGo CurdStep）
+// 约定：数组为空表示"未显式配置"，此时默认启用对应操作
 func initStepFlags(data *TplData, opts OptionsJson) {
-	data.HasAdd = strInArray(opts.HeadOps, "add")
-	data.HasBatchDel = strInArray(opts.HeadOps, "batchDel") && strInArray(opts.ColumnOps, "check")
-	data.HasExport = strInArray(opts.HeadOps, "export")
-	data.HasEdit = strInArray(opts.ColumnOps, "edit")
-	data.HasDel = strInArray(opts.ColumnOps, "del")
-	data.HasView = strInArray(opts.ColumnOps, "view")
-	data.HasCheck = strInArray(opts.ColumnOps, "check")
-	data.NotFilterAuth = strInArray(opts.ColumnOps, "notFilterAuth")
+	headEmpty := len(opts.HeadOps) == 0
+	colEmpty := len(opts.ColumnOps) == 0
+
+	data.HasAdd = headEmpty || strInArray(opts.HeadOps, "add")
+	data.HasBatchDel = (headEmpty && colEmpty) || (strInArray(opts.HeadOps, "batchDel") && strInArray(opts.ColumnOps, "check"))
+	data.HasExport = headEmpty || strInArray(opts.HeadOps, "export")
+	data.HasEdit = colEmpty || strInArray(opts.ColumnOps, "edit")
+	data.HasDel = colEmpty || strInArray(opts.ColumnOps, "del")
+	data.HasView = colEmpty || strInArray(opts.ColumnOps, "view")
+	data.HasCheck = colEmpty || strInArray(opts.ColumnOps, "check")
+	data.NotFilterAuth = colEmpty || strInArray(opts.ColumnOps, "notFilterAuth")
 
 	// HasStatus: 需要 columnOps 包含 "status" 且表中确实有 status 字段
-	if strInArray(opts.ColumnOps, "status") {
+	if strInArray(opts.ColumnOps, "status") || colEmpty {
 		for _, col := range data.AllColumns {
 			if col.Name == "status" || col.Name == "state" {
 				data.HasStatus = true
@@ -1022,25 +1042,13 @@ func initStepFlags(data *TplData, opts OptionsJson) {
 	}
 
 	// AutoOps
-	data.HasMenu = strInArray(opts.AutoOps, "genMenuPermissions")
+	data.HasMenu = len(opts.AutoOps) == 0 || strInArray(opts.AutoOps, "genMenuPermissions")
 	data.ForcedCover = strInArray(opts.AutoOps, "forcedCover")
 
 	// 查看模式
 	data.ViewMode = opts.ViewMode
 	if data.ViewMode == "" {
 		data.ViewMode = "drawer"
-	}
-
-	// 兼容：如果 HeadOps/ColumnOps 为空（旧数据），默认全开
-	if len(opts.HeadOps) == 0 && len(opts.ColumnOps) == 0 {
-		data.HasAdd = true
-		data.HasBatchDel = true
-		data.HasExport = true
-		data.HasEdit = true
-		data.HasDel = true
-		data.HasView = true
-		data.HasCheck = true
-		data.HasMenu = true
 	}
 }
 
@@ -1371,73 +1379,73 @@ func getTplFiles(ctx context.Context, data *TplData, opts OptionsJson) []tplFile
 			case "api.go.tpl":
 				if p := opts.GenPaths["api"]; p != "" {
 					if !hasExt(p) {
-						p = filepath.Join(p, filepath.Base(files[i].OutPath))
+						p = genAppendSuffix(p, files[i].OutPath, data.ModulePath)
 					}
 					files[i].OutPath = p
 				}
 			case "controller.go.tpl":
 				if p := opts.GenPaths["controller"]; p != "" {
 					if !hasExt(p) {
-						p = filepath.Join(p, filepath.Base(files[i].OutPath))
+						p = genAppendSuffix(p, files[i].OutPath, data.ModulePath)
 					}
 					files[i].OutPath = p
 				}
 			case "logic.go.tpl", "logic_tree.go.tpl":
 				if p := opts.GenPaths["logic"]; p != "" {
 					if !hasExt(p) {
-						p = filepath.Join(p, filepath.Base(files[i].OutPath))
+						p = genAppendSuffix(p, files[i].OutPath, data.ModulePath)
 					}
 					files[i].OutPath = p
 				}
 			case "input.go.tpl", "input_tree.go.tpl":
 				if p := opts.GenPaths["input"]; p != "" {
 					if !hasExt(p) {
-						p = filepath.Join(p, filepath.Base(files[i].OutPath))
+						p = genAppendSuffix(p, files[i].OutPath, data.ModulePath)
 					}
 					files[i].OutPath = p
 				}
 			case "web_index.vue.tpl", "web_tree_index.vue.tpl":
 				if p := opts.GenPaths["webIndex"]; p != "" {
 					if !hasExt(p) {
-						p = filepath.Join(p, filepath.Base(files[i].OutPath))
+						p = genAppendSuffix(p, files[i].OutPath, data.ModulePath)
 					}
 					files[i].OutPath = p
 				}
 			case "web_search.vue.tpl":
 				if p := opts.GenPaths["webSearch"]; p != "" {
 					if !hasExt(p) {
-						p = filepath.Join(p, filepath.Base(files[i].OutPath))
+						p = genAppendSuffix(p, files[i].OutPath, data.ModulePath)
 					}
 					files[i].OutPath = p
 				}
 			case "web_dialog.vue.tpl", "web_dialog_tree.vue.tpl":
 				if p := opts.GenPaths["webDialog"]; p != "" {
 					if !hasExt(p) {
-						p = filepath.Join(p, filepath.Base(files[i].OutPath))
+						p = genAppendSuffix(p, files[i].OutPath, data.ModulePath)
 					}
 					files[i].OutPath = p
 				}
 			case "web_api.ts.tpl":
 				if p := opts.GenPaths["webApi"]; p != "" {
-					if !strings.HasSuffix(p, ".ts") {
-						p += ".ts"
+					if hasExt(p) {
+						// p 已是完整文件路径
+						files[i].OutPath = p
+					} else {
+						// p 是目录，追加 modulePath 后的完整后缀（含 .ts）
+						files[i].OutPath = genAppendSuffix(p, files[i].OutPath, data.ModulePath)
 					}
-					if !hasExt(p) {
-						p = filepath.Join(p, filepath.Base(files[i].OutPath))
-					}
-					files[i].OutPath = p
 				}
 			case "web_detail_page.vue.tpl":
 				if p := opts.GenPaths["webDetail"]; p != "" {
 					if !hasExt(p) {
-						p = filepath.Join(p, filepath.Base(files[i].OutPath))
+						p = genAppendSuffix(p, files[i].OutPath, data.ModulePath)
 					}
 					files[i].OutPath = p
 				}
 			case "web_detail_drawer.vue.tpl":
 				if p := opts.GenPaths["webDetail"]; p != "" {
 					if !hasExt(p) {
-						p = filepath.Join(p, filepath.Base(files[i].OutPath))
+						p = genAppendSuffix(p, files[i].OutPath, data.ModulePath)
 					}
 					files[i].OutPath = p
 				}
@@ -1452,6 +1460,21 @@ func getTplFiles(ctx context.Context, data *TplData, opts OptionsJson) []tplFile
 func hasExt(p string) bool {
 	return strings.HasSuffix(p, ".go") || strings.HasSuffix(p, ".vue") ||
 		strings.HasSuffix(p, ".ts") || strings.HasSuffix(p, ".sql")
+}
+
+// genAppendSuffix 目录路径覆盖时，追加原始路径中 modulePath 之后的完整后缀
+// 例如：覆盖路径 "../web/src/views/order/biz-order"，
+//
+//	原始路径 "../web/src/views/order/biz-order/modules/biz-order-dialog.vue"
+//
+// 结果：  "../web/src/views/order/biz-order/modules/biz-order-dialog.vue"
+func genAppendSuffix(override, origPath, modulePath string) string {
+	if modulePath != "" {
+		if idx := strings.LastIndex(origPath, modulePath); idx >= 0 {
+			return override + origPath[idx+len(modulePath):]
+		}
+	}
+	return filepath.Join(override, filepath.Base(origPath))
 }
 
 // ==================== 工具函数 ====================
