@@ -754,17 +754,22 @@ func buildTplData(ctx context.Context, in *adminin.GenCodesEditInp, opts Options
 	// DAO 名称：去掉表前缀，PascalCase
 	daoName := snakeToPascal(strings.TrimPrefix(in.TableName, tablePrefix))
 
-	// 模块路径：有上级菜单时嵌套到父菜单路径下
+	tpl := genconfig.GetDefaultTemplate(ctx)
+
+	// 模块路径：优先从 GenPaths["webIndex"] 推导（用户指定的绝对输出路径），
+	// 否则有上级菜单时嵌套到父菜单路径下
 	modulePath := routeName
-	if opts.Menu.Pid > 0 {
+	if opts.GenPaths != nil && opts.GenPaths["webIndex"] != "" {
+		p := opts.GenPaths["webIndex"]
+		// 去掉 tpl.WebViewsPath 前缀得到模块路径（如 ../web/src/views/order/biz-order → order/biz-order）
+		if strings.HasPrefix(p, tpl.WebViewsPath) {
+			modulePath = strings.Trim(strings.TrimPrefix(p, tpl.WebViewsPath), "/")
+		}
+	} else if opts.Menu.Pid > 0 {
 		parentPath := getMenuPath(ctx, opts.Menu.Pid)
 		if parentPath != "" {
 			modulePath = parentPath + "/" + routeName
 		}
-	}
-	if opts.GenPaths != nil && opts.GenPaths["webApi"] != "" {
-		// 用户手动配置的路径优先（仅用于覆盖 web_api.ts.tpl 的输出路径）
-		// modulePath 始终由 routeName + parentPath 计算，不受此影响
 	}
 
 	// 找主键
@@ -779,8 +784,6 @@ func buildTplData(ctx context.Context, in *adminin.GenCodesEditInp, opts Options
 			break
 		}
 	}
-
-	tpl := genconfig.GetDefaultTemplate(ctx)
 
 	// 从 GenPaths 覆盖值或模板配置推导 Go 包目录（优先 GenPaths）
 	genDir := func(tplPath, genKey string) string {
