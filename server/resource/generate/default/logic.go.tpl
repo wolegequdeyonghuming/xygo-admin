@@ -12,6 +12,9 @@ import (
 {{- if or .HasAdd .HasEdit}}
 	"github.com/gogf/gf/v2/frame/g"
 {{- end}}
+{{- if and (or .HasAdd .HasEdit) (not .PkIsAutoIncrement)}}
+	"github.com/gogf/gf/v2/os/gtime"
+{{- end}}
 
 	"xygo/internal/dao"
 	adminin "{{.GoInputImport}}"
@@ -365,9 +368,32 @@ func (s *s{{.VarName}}) Edit(ctx context.Context, in *adminin.{{.VarName}}EditIn
 {{- end}}
 {{- end}}
 	}
+{{- if not .PkIsAutoIncrement}}
 
+	// 非自增主键：为空时生成主键值，并加入 INSERT 数据
+{{- if eq .PkTsName "string"}}
+	if in.{{.PkGoName}} == "" {
+		in.{{.PkGoName}} = gtime.TimestampNanoStr()
+	}
+{{- else}}
 	if in.{{.PkGoName}} == 0 {
-		// 新增（created_at/updated_at 由 GoFrame 自动维护）
+		in.{{.PkGoName}} = gtime.TimestampNano()
+	}
+{{- end}}
+	data["{{.PkColumn}}"] = in.{{.PkGoName}}
+{{- end}}
+
+	// 判断新增/更新：自增主键用 0 判断，非自增（UUID/时间戳）用空值判断
+	isNew := false
+{{- if .PkIsAutoIncrement}}
+	isNew = in.{{.PkGoName}} == 0
+{{- else if eq .PkTsName "string"}}
+	isNew = in.{{.PkGoName}} == ""
+{{- else}}
+	isNew = in.{{.PkGoName}} == 0
+{{- end}}
+	if isNew {
+		// 新增
 		_, err := dao.{{.DaoName}}.Ctx(ctx).Data(data).Insert()
 		return err
 	}
