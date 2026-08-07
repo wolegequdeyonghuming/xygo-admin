@@ -782,6 +782,8 @@ func buildTplData(ctx context.Context, in *adminin.GenCodesEditInp, opts Options
 		}
 	}
 
+	tpl := genconfig.GetDefaultTemplate(ctx)
+
 	data := &TplData{
 		VarName:      varName,
 		PkgName:      pkgName,
@@ -803,13 +805,13 @@ func buildTplData(ctx context.Context, in *adminin.GenCodesEditInp, opts Options
 		ApiPrefix:    "/admin/" + routeName,
 		ResourceName: strings.TrimPrefix(in.TableName, tablePrefix),
 
-		// 默认主包模式路径
-		GoApiImport:        "xygo/api/admin",
-		GoApiPkg:           "admin",
-		GoInputImport:      "xygo/internal/model/input/adminin",
-		GoInputPkg:         "adminin",
+		// 默认主包模式路径 - 从模板配置推导
+		GoApiImport:        "xygo/" + tpl.ApiPath,
+		GoApiPkg:           filepath.Base(tpl.ApiPath),
+		GoInputImport:      "xygo/" + tpl.InputPath,
+		GoInputPkg:         filepath.Base(tpl.InputPath),
 		GoServiceImport:    "xygo/internal/service",
-		GoControllerPkg:    "admin",
+		GoControllerPkg:    filepath.Base(tpl.ControllerPath),
 		ControllerReceiver: "ControllerV1",
 	}
 
