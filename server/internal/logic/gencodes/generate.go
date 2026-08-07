@@ -1370,36 +1370,74 @@ func getTplFiles(ctx context.Context, data *TplData, opts OptionsJson) []tplFile
 			switch f.TplName {
 			case "api.go.tpl":
 				if p := opts.GenPaths["api"]; p != "" {
+					if !hasExt(p) {
+						p = filepath.Join(p, filepath.Base(files[i].OutPath))
+					}
 					files[i].OutPath = p
 				}
 			case "controller.go.tpl":
 				if p := opts.GenPaths["controller"]; p != "" {
+					if !hasExt(p) {
+						p = filepath.Join(p, filepath.Base(files[i].OutPath))
+					}
 					files[i].OutPath = p
 				}
 			case "logic.go.tpl", "logic_tree.go.tpl":
 				if p := opts.GenPaths["logic"]; p != "" {
+					if !hasExt(p) {
+						p = filepath.Join(p, filepath.Base(files[i].OutPath))
+					}
 					files[i].OutPath = p
 				}
 			case "input.go.tpl", "input_tree.go.tpl":
 				if p := opts.GenPaths["input"]; p != "" {
+					if !hasExt(p) {
+						p = filepath.Join(p, filepath.Base(files[i].OutPath))
+					}
 					files[i].OutPath = p
 				}
 			case "web_index.vue.tpl", "web_tree_index.vue.tpl":
 				if p := opts.GenPaths["webIndex"]; p != "" {
+					if !hasExt(p) {
+						p = filepath.Join(p, filepath.Base(files[i].OutPath))
+					}
 					files[i].OutPath = p
 				}
 			case "web_search.vue.tpl":
 				if p := opts.GenPaths["webSearch"]; p != "" {
+					if !hasExt(p) {
+						p = filepath.Join(p, filepath.Base(files[i].OutPath))
+					}
 					files[i].OutPath = p
 				}
 			case "web_dialog.vue.tpl", "web_dialog_tree.vue.tpl":
 				if p := opts.GenPaths["webDialog"]; p != "" {
+					if !hasExt(p) {
+						p = filepath.Join(p, filepath.Base(files[i].OutPath))
+					}
 					files[i].OutPath = p
 				}
 			case "web_api.ts.tpl":
 				if p := opts.GenPaths["webApi"]; p != "" {
 					if !strings.HasSuffix(p, ".ts") {
 						p += ".ts"
+					}
+					if !hasExt(p) {
+						p = filepath.Join(p, filepath.Base(files[i].OutPath))
+					}
+					files[i].OutPath = p
+				}
+			case "web_detail_page.vue.tpl":
+				if p := opts.GenPaths["webDetail"]; p != "" {
+					if !hasExt(p) {
+						p = filepath.Join(p, filepath.Base(files[i].OutPath))
+					}
+					files[i].OutPath = p
+				}
+			case "web_detail_drawer.vue.tpl":
+				if p := opts.GenPaths["webDetail"]; p != "" {
+					if !hasExt(p) {
+						p = filepath.Join(p, filepath.Base(files[i].OutPath))
 					}
 					files[i].OutPath = p
 				}
@@ -1408,6 +1446,12 @@ func getTplFiles(ctx context.Context, data *TplData, opts OptionsJson) []tplFile
 	}
 
 	return files
+}
+
+// hasExt 检查路径是否以已知扩展名结尾（.go/.vue/.ts/.sql）
+func hasExt(p string) bool {
+	return strings.HasSuffix(p, ".go") || strings.HasSuffix(p, ".vue") ||
+		strings.HasSuffix(p, ".ts") || strings.HasSuffix(p, ".sql")
 }
 
 // ==================== 工具函数 ====================
