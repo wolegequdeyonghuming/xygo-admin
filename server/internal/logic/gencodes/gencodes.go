@@ -1029,10 +1029,8 @@ func deleteGeneratedFilesFallback(ctx context.Context, record *entity.SysGenCode
 		}
 	}
 	if opts.GenPaths != nil && opts.GenPaths["webApi"] != "" {
-		apiPath := opts.GenPaths["webApi"]
-		apiPath = strings.TrimPrefix(apiPath, "api/backend/")
-		apiPath = strings.TrimSuffix(apiPath, ".ts")
-		modulePath = apiPath
+		// 用户手动配置的路径优先（仅用于覆盖 web_api.ts.tpl 的输出路径）
+		// modulePath 始终由 routeName + parentPath 计算，不受此影响
 	}
 
 	ctrlFile := fmt.Sprintf("%s/%s.go", tpl.ControllerPath, snakeName)

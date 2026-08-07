@@ -33,10 +33,10 @@ type CrudTemplate struct {
 
 // GenConfig 代码生成器配置
 type GenConfig struct {
-	AllowedIPs    []string       `json:"allowedIPs"`
-	SelectDbs     []string       `json:"selectDbs"`
-	DisableTables []string       `json:"disableTables"`
-	Application   AppConfig      `json:"application"`
+	AllowedIPs    []string  `json:"allowedIPs"`
+	SelectDbs     []string  `json:"selectDbs"`
+	DisableTables []string  `json:"disableTables"`
+	Application   AppConfig `json:"application"`
 }
 
 // AppConfig 应用配置
@@ -126,8 +126,8 @@ func defaultConfig() *GenConfig {
 						LogicPath:      "internal/logic",
 						InputPath:      "internal/model/input/adminin",
 						SqlPath:        "resource/sql/generate",
-						WebApiPath:     "../web/src/api/backend",
-						WebViewsPath:   "../web/src/views/backend",
+						WebApiPath:     "../web/src/api",
+						WebViewsPath:   "../web/src/views",
 					},
 				},
 			},

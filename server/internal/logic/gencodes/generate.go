@@ -762,11 +762,8 @@ func buildTplData(ctx context.Context, in *adminin.GenCodesEditInp, opts Options
 		}
 	}
 	if opts.GenPaths != nil && opts.GenPaths["webApi"] != "" {
-		// 用户手动配置的路径优先
-		apiPath := opts.GenPaths["webApi"]
-		apiPath = strings.TrimPrefix(apiPath, "api/backend/")
-		apiPath = strings.TrimSuffix(apiPath, ".ts")
-		modulePath = apiPath
+		// 用户手动配置的路径优先（仅用于覆盖 web_api.ts.tpl 的输出路径）
+		// modulePath 始终由 routeName + parentPath 计算，不受此影响
 	}
 
 	// 找主键
@@ -833,7 +830,9 @@ func buildTplData(ctx context.Context, in *adminin.GenCodesEditInp, opts Options
 			data.ControllerReceiver = "AdminControllerV1"
 		}
 	} else {
-		data.WebApiImportPath = "@/api/backend/" + modulePath
+		// 从模板配置推导前端 API import 路径：../web/src/api → @/api
+		webApiPrefix := strings.TrimPrefix(tpl.WebApiPath, "../web/src/")
+		data.WebApiImportPath = "@/" + webApiPrefix + "/" + modulePath
 		data.MenuComponentPath = "/" + modulePath
 	}
 
@@ -1399,6 +1398,9 @@ func getTplFiles(ctx context.Context, data *TplData, opts OptionsJson) []tplFile
 				}
 			case "web_api.ts.tpl":
 				if p := opts.GenPaths["webApi"]; p != "" {
+					if !strings.HasSuffix(p, ".ts") {
+						p += ".ts"
+					}
 					files[i].OutPath = p
 				}
 			}
