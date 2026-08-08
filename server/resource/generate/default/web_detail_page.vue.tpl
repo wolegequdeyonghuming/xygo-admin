@@ -117,7 +117,7 @@
   }
 
   onMounted(async () => {
-    const id = Number(route.query.id || route.params.id)
+    const id = Number(route.params.id)
     if (!id) return
     loading.value = true
     try {

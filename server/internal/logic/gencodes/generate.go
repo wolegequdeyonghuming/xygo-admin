@@ -627,7 +627,7 @@ func executeMenuORM(ctx context.Context, data *TplData) error {
 				detailParentId = int64(data.MenuPid)
 			}
 			detailMenu := baseMenu(detailParentId, 2, data.TableComment+"详情", data.VarName+"Detail",
-				pagePath+"/detail", data.MenuComponentPath+"/detail/index", "",
+				pagePath+"/detail/:id", data.MenuComponentPath+"/detail/index", "",
 				fmt.Sprintf(`["GET %s/view"]`, data.ApiPrefix), 1, 0, 0)
 			detailMenu["active_path"] = "/" + data.ModulePath
 			if _, err := db.Ctx(ctx).Model(menuTable).Data(detailMenu).Insert(); err != nil {

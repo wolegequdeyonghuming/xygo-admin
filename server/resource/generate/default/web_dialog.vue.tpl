@@ -19,7 +19,7 @@
       <ElFormItem label="{{.Label}}" prop="{{.TsName}}">
 {{- if .DictType}}
         <ElRadioGroup v-model="formData.{{.TsName}}">
-          <ElRadio v-for="opt in dictStore.getDictData('{{.DictType}}')" :key="opt.value" :value="opt.value">
+          <ElRadio v-for="opt in dictStore.getDictData('{{.DictType}}')" :key="opt.value" :value="{{if eq .TsType "number"}}Number(opt.value){{else}}opt.value{{end}}">
             {{"{{"}} opt.label {{"}}"}}
           </ElRadio>
         </ElRadioGroup>
@@ -41,7 +41,7 @@
       <ElFormItem label="{{.Label}}" prop="{{.TsName}}">
 {{- if .DictType}}
         <ElCheckboxGroup v-model="formData.{{.TsName}}">
-          <ElCheckbox v-for="opt in dictStore.getDictData('{{.DictType}}')" :key="opt.value" :value="opt.value">
+          <ElCheckbox v-for="opt in dictStore.getDictData('{{.DictType}}')" :key="opt.value" :value="{{if eq .TsType "number"}}Number(opt.value){{else}}opt.value{{end}}">
             {{"{{"}} opt.label {{"}}"}}
           </ElCheckbox>
         </ElCheckboxGroup>
@@ -98,7 +98,7 @@
       <ElFormItem label="{{.Label}}" prop="{{.TsName}}">
 {{- if .DictType}}
         <ElSelect v-model="formData.{{.TsName}}" placeholder="请选择{{.Label}}" clearable{{if eq .DesignType "selects"}} multiple{{end}}>
-          <ElOption v-for="opt in dictStore.getDictData('{{.DictType}}')" :key="opt.value" :label="opt.label" :value="opt.value" />
+          <ElOption v-for="opt in dictStore.getDictData('{{.DictType}}')" :key="opt.value" :label="opt.label" :value="{{if eq .TsType "number"}}Number(opt.value){{else}}opt.value{{end}}" />
         </ElSelect>
 {{- else if .HasOptions}}
         <ElSelect v-model="formData.{{.TsName}}" placeholder="请选择{{.Label}}" clearable{{if eq .DesignType "selects"}} multiple{{end}}>

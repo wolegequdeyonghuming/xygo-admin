@@ -414,7 +414,7 @@
 
   const handleView = (row: any) => {
 {{- if eq .ViewMode "page"}}
-    router.push({ name: '{{.VarName}}Detail', query: { id: row.{{.PkTsName}} } })
+    router.push({ name: '{{.VarName}}Detail', params: { id: String(row.{{.PkTsName}}) } })
 {{- else}}
     detailId.value = row.{{.PkTsName}}
     detailVisible.value = true
