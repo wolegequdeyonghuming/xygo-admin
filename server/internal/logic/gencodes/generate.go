@@ -37,6 +37,7 @@ type TplData struct {
 	PkColumn          string // 主键字段名(数据库)
 	PkGoName          string // 主键 Go 名称
 	PkTsName          string // 主键 TS 名称
+	PkGoType          string // 主键 Go 类型
 	PkIsAutoIncrement bool   // 主键是否自增
 
 	// 树表相关
@@ -800,12 +801,14 @@ func buildTplData(ctx context.Context, in *adminin.GenCodesEditInp, opts Options
 	pkColumn := "id"
 	pkGoName := "Id"
 	pkTsName := "id"
+	pkGoType := "int64"
 	pkIsAutoIncrement := true
 	for _, col := range in.Columns {
 		if col.IsPk == 1 {
 			pkColumn = col.Name
 			pkGoName = col.GoName
 			pkTsName = col.TsName
+			pkGoType = col.GoType
 			// 自增判断：优先显式标记；否则字符串主键（UUID/时间戳等）视为非自增
 			pkIsAutoIncrement = col.IsAutoIncrement == 1
 			if col.IsAutoIncrement != 1 && col.TsType == "string" {
@@ -844,6 +847,7 @@ func buildTplData(ctx context.Context, in *adminin.GenCodesEditInp, opts Options
 		PkColumn:          pkColumn,
 		PkGoName:          pkGoName,
 		PkTsName:          pkTsName,
+		PkGoType:          pkGoType,
 		PkIsAutoIncrement: pkIsAutoIncrement,
 		GenType:           opts.GenType,
 		MenuPid:           opts.Menu.Pid,

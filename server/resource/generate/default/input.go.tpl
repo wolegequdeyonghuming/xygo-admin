@@ -54,8 +54,11 @@ type {{.VarName}}ListInp struct {
 
 // {{.VarName}}ListItem {{.TableComment}}列表项
 type {{.VarName}}ListItem struct {
+	{{.PkGoName}} {{.PkGoType}} `json:"{{.PkTsName}}" dc:"主键"`
 {{- range .ListColumns}}
+{{- if ne .Name $.PkColumn}}
 	{{.GoName}} {{.GoType}} `json:"{{.TsName}}" dc:"{{.Comment}}"`
+{{- end}}
 {{- end}}
 {{- if .HasRelations}}
 	// 关联表字段（来自 LeftJoin）
