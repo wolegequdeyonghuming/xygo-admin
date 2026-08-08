@@ -66,10 +66,11 @@ type TplData struct {
 	NeedsGjson bool // 字段中包含 *gjson.Json
 
 	// 字段分组
-	AllColumns   []TplColumn
-	ListColumns  []TplColumn
-	EditColumns  []TplColumn
-	QueryColumns []TplColumn
+	AllColumns    []TplColumn
+	ListColumns   []TplColumn
+	EditColumns   []TplColumn
+	QueryColumns  []TplColumn
+	DetailColumns []TplColumn
 
 	// 关联表
 	HasRelations     bool          // 是否有关联表
@@ -928,6 +929,10 @@ func buildTplData(ctx context.Context, in *adminin.GenCodesEditInp, opts Options
 		if col.IsList == 1 {
 			data.ListColumns = append(data.ListColumns, tc)
 		}
+		// 详情页字段：排除自动/敏感字段（id、时间戳、删除标记、创建人、密码等），保留附件/富文本等
+		if !isDetailAutoColumn(col.Name) && !isDetailSensitiveColumn(col.Name) {
+			data.DetailColumns = append(data.DetailColumns, tc)
+		}
 		if col.IsEdit == 1 || col.IsPk == 1 {
 			data.EditColumns = append(data.EditColumns, tc)
 		}
@@ -1710,6 +1715,22 @@ func isTimeColumn(name string) bool {
 	n := strings.ToLower(name)
 	return n == "created_at" || n == "updated_at" || n == "create_time" || n == "update_time" ||
 		n == "deleted_at" || n == "delete_time" || strings.HasSuffix(n, "_time") || strings.HasSuffix(n, "_at")
+}
+
+// isDetailAutoColumn 详情页排除的自动/系统字段
+func isDetailAutoColumn(name string) bool {
+	auto := map[string]bool{
+		"id": true, "created_at": true, "updated_at": true,
+		"create_time": true, "update_time": true, "deleted_at": true,
+		"delete_time": true, "created_by": true, "updated_by": true,
+	}
+	return auto[strings.ToLower(name)]
+}
+
+// isDetailSensitiveColumn 详情页排除的敏感字段
+func isDetailSensitiveColumn(name string) bool {
+	sensitive := map[string]bool{"password": true, "salt": true, "secret": true}
+	return sensitive[strings.ToLower(name)]
 }
 
 // parseRadioOptions 解析注释中的选项字典（对齐 BuildAdmin Helper::getDictData）

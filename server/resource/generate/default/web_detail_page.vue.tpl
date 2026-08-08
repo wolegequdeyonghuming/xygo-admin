@@ -17,8 +17,12 @@
       </div>
 
       <ElDescriptions v-else-if="detail" :column="2" border class="detail-descriptions">
-{{- range .ListColumns}}
-{{- if or (eq .DesignType "image") (eq .Render "image")}}
+{{- range .DetailColumns}}
+{{- if .DictType}}
+        <ElDescriptionsItem label="{{.Label}}">
+          <DictLabel :dict-type="'{{.DictType}}'" :value="detail.{{.TsName}}" />
+        </ElDescriptionsItem>
+{{- else if or (eq .DesignType "image") (eq .Render "image")}}
         <ElDescriptionsItem label="{{.Label}}">
           <ElImage v-if="detail.{{.TsName}}" :src="detail.{{.TsName}}" style="width:120px;height:120px" fit="cover" :preview-src-list="[detail.{{.TsName}}]" />
           <span v-else>-</span>
@@ -49,9 +53,16 @@
           <span v-if="detail.{{.TsName}}" :style="`display:inline-block;width:24px;height:24px;border-radius:4px;background:${detail.{{.TsName}}}`"></span>
           <span v-else>-</span>
         </ElDescriptionsItem>
-{{- else if or (eq .Render "url") (and (eq .Render "") (eq .DesignType "file"))}}
+{{- else if or (eq .Render "url") (and (eq .Render "") (or (eq .DesignType "file") (eq .DesignType "fileUpload")))}}
         <ElDescriptionsItem label="{{.Label}}">
           <a v-if="detail.{{.TsName}}" :href="detail.{{.TsName}}" target="_blank" style="color:var(--el-color-primary)">{{"{{"}} detail.{{.TsName}} {{"}}"}}</a>
+          <span v-else>-</span>
+        </ElDescriptionsItem>
+{{- else if and (eq .Render "") (or (eq .DesignType "files") (eq .DesignType "filesUpload"))}}
+        <ElDescriptionsItem label="{{.Label}}">
+          <div v-if="detail.{{.TsName}}" style="display:flex;flex-direction:column;gap:4px">
+            <a v-for="(f, i) in (Array.isArray(detail.{{.TsName}}) ? detail.{{.TsName}} : String(detail.{{.TsName}} || '').split(',').filter(Boolean))" :key="i" :href="f" target="_blank" style="color:var(--el-color-primary);font-size:13px">文件 {{"{{"}} i + 1 {{"}}"}}</a>
+          </div>
           <span v-else>-</span>
         </ElDescriptionsItem>
 {{- else if eq .DesignType "editor"}}
@@ -98,6 +109,11 @@
   import ArtSvgIcon from '@/components/core/base/art-svg-icon/index.vue'
   import { fetch{{.VarName}}View } from '{{.WebApiImportPath}}'
   import { formatTimestamp } from '@/utils/time'
+{{- if .HasDictColumns}}
+  import { useDictStore } from '@/store/modules/dict'
+  import DictLabel from '@/components/DictLabel/index.vue'
+  const dictStore = useDictStore()
+{{- end}}
 {{- $hasMulti := false}}
 {{- range .ListColumns}}{{if or (eq .DesignType "images") (eq .DesignType "files") (eq .Render "images")}}{{$hasMulti = true}}{{end}}{{end}}
 {{- if $hasMulti}}
