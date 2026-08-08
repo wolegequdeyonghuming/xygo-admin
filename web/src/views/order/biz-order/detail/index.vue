@@ -36,7 +36,7 @@
         <ElDescriptionsItem label="话务员">{{ detail.telemarketer_real_name ?? '-' }}</ElDescriptionsItem>
         <ElDescriptionsItem label="收单员">{{ detail.agent_real_name ?? '-' }}</ElDescriptionsItem>
         <ElDescriptionsItem label="收单预约情况">{{ detail.appointmentDesc ?? '-' }}</ElDescriptionsItem>
-        <ElDescriptionsItem label="话务二次回放情况">{{ detail.followUpDesc ?? '-' }}</ElDescriptionsItem>
+        <ElDescriptionsItem label="话务二次回访情况">{{ detail.followUpDesc ?? '-' }}</ElDescriptionsItem>
         <ElDescriptionsItem label="成交业务">{{ detail.dealtBusinessType ?? '-' }}</ElDescriptionsItem>
         <ElDescriptionsItem label="携转情况">{{ detail.portingStatus ?? '-' }}</ElDescriptionsItem>
         <ElDescriptionsItem label="客户实际姓名">{{ detail.customerRealName ?? '-' }}</ElDescriptionsItem>

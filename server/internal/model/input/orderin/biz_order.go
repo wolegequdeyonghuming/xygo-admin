@@ -41,11 +41,11 @@ type BizOrderListItem struct {
 	TelemarketerId    *int64      `json:"telemarketerId" dc:"话务员"`
 	AgentId           *int64      `json:"agentId" dc:"收单员"`
 	AppointmentDesc   string      `json:"appointmentDesc" dc:"收单预约情况"`
-	FollowUpDesc      string      `json:"followUpDesc" dc:"话务二次回放情况"`
+	FollowUpDesc      string      `json:"followUpDesc" dc:"话务二次回访情况"`
 	DealtBusinessType string      `json:"dealtBusinessType" dc:"成交业务"`
 	PortingStatus     string      `json:"portingStatus" dc:"携转情况"`
 	CustomerRealName  string      `json:"customerRealName" dc:"客户实际姓名"`
-	CustomerIdNumber  *int64      `json:"customerIdNumber" dc:"客户身份证号"`
+	CustomerIdNumber  *string     `json:"customerIdNumber" dc:"客户身份证号"`
 	PaidAmount        *float64    `json:"paidAmount" dc:"实缴额度（元）"`
 	IsRuralOrder      *int        `json:"isRuralOrder" dc:"是否乡下单"`
 	NewPhoneNo        string      `json:"newPhoneNo" dc:"新开号码"`
@@ -85,11 +85,11 @@ type BizOrderViewModel struct {
 	TelemarketerId    *int64      `json:"telemarketerId" dc:"话务员"`
 	AgentId           *int64      `json:"agentId" dc:"收单员"`
 	AppointmentDesc   string      `json:"appointmentDesc" dc:"收单预约情况"`
-	FollowUpDesc      string      `json:"followUpDesc" dc:"话务二次回放情况"`
+	FollowUpDesc      string      `json:"followUpDesc" dc:"话务二次回访情况"`
 	DealtBusinessType string      `json:"dealtBusinessType" dc:"成交业务"`
 	PortingStatus     string      `json:"portingStatus" dc:"携转情况"`
 	CustomerRealName  string      `json:"customerRealName" dc:"客户实际姓名"`
-	CustomerIdNumber  *int64      `json:"customerIdNumber" dc:"客户身份证号"`
+	CustomerIdNumber  *string     `json:"customerIdNumber" dc:"客户身份证号"`
 	PaidAmount        *float64    `json:"paidAmount" dc:"实缴额度（元）"`
 	IsRuralOrder      *int        `json:"isRuralOrder" dc:"是否乡下单"`
 	NewPhoneNo        string      `json:"newPhoneNo" dc:"新开号码"`
@@ -128,11 +128,11 @@ type BizOrderEditInp struct {
 	TelemarketerId    int64       `json:"telemarketerId" dc:"话务员"`
 	AgentId           int64       `json:"agentId" dc:"收单员"`
 	AppointmentDesc   string      `json:"appointmentDesc" dc:"收单预约情况"`
-	FollowUpDesc      string      `json:"followUpDesc" dc:"话务二次回放情况"`
+	FollowUpDesc      string      `json:"followUpDesc" dc:"话务二次回访情况"`
 	DealtBusinessType string      `json:"dealtBusinessType" dc:"成交业务"`
 	PortingStatus     string      `json:"portingStatus" dc:"携转情况"`
 	CustomerRealName  string      `json:"customerRealName" dc:"客户实际姓名"`
-	CustomerIdNumber  int64       `json:"customerIdNumber" dc:"客户身份证号"`
+	CustomerIdNumber  string      `json:"customerIdNumber" dc:"客户身份证号"`
 	PaidAmount        float64     `json:"paidAmount" dc:"实缴额度（元）"`
 	IsRuralOrder      int         `json:"isRuralOrder" dc:"是否乡下单"`
 	NewPhoneNo        string      `json:"newPhoneNo" dc:"新开号码"`

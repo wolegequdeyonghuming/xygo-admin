@@ -56,3 +56,14 @@ type UserKickReq struct {
 
 // UserKickRes 强制用户下线响应
 type UserKickRes struct{}
+
+// UserSelectorReq 人员选择器请求
+type UserSelectorReq struct {
+	g.Meta `path:"/admin/user/selector" method:"get" tags:"AdminUser" summary:"人员选择器(部门树)"`
+	adminin.UserSelectorInp
+}
+
+// UserSelectorRes 人员选择器响应
+type UserSelectorRes struct {
+	adminin.UserSelectorModel
+}

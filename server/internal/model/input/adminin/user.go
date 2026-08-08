@@ -71,3 +71,28 @@ type UserDetailModel struct {
 type UserDeleteInp struct {
 	Id uint64 `p:"id" v:"required#用户ID不能为空" json:"id" dc:"用户ID"`
 }
+
+// ==================== 人员选择器 ====================
+
+// UserSelectorInp 人员选择器查询入参
+// 过滤规则：同类型数组内为并集(OR)，不同类型之间为交集(AND)
+type UserSelectorInp struct {
+	DeptIds []uint `json:"deptIds" dc:"部门ID数组"`
+	RoleIds []uint `json:"roleIds" dc:"角色ID数组"`
+	PostIds []uint `json:"postIds" dc:"岗位ID数组"`
+	Keyword string `json:"keyword" dc:"按真实姓名模糊搜索"`
+}
+
+// UserSelectorNode 人员选择器树节点
+// 叶子节点为用户(value=用户ID, disabled=false)，部门节点不可选(disabled=true)
+type UserSelectorNode struct {
+	Value    uint                `json:"value"    dc:"节点值（部门为部门ID，用户为用户ID）"`
+	Label    string              `json:"label"    dc:"显示文本"`
+	Disabled bool                `json:"disabled" dc:"部门节点不可选"`
+	Children []*UserSelectorNode `json:"children,omitempty" dc:"子节点"`
+}
+
+// UserSelectorModel 人员选择器响应模型
+type UserSelectorModel struct {
+	List []*UserSelectorNode `json:"list" dc:"部门树根节点列表"`
+}

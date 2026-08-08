@@ -58,3 +58,27 @@ export function fetchKickUser(id: number) {
     params: { id }
   })
 }
+
+/**
+ * 人员选择器（部门树，叶子为用户）
+ */
+export interface PersonSelectorNode {
+  value: number
+  label: string
+  disabled?: boolean
+  children?: PersonSelectorNode[]
+}
+
+export interface PersonSelectorParams {
+  deptIds?: number[]
+  roleIds?: number[]
+  postIds?: number[]
+  keyword?: string
+}
+
+export function fetchPersonSelector(params: PersonSelectorParams) {
+  return adminRequest.get<{ list: PersonSelectorNode[] }>({
+    url: '/user/selector',
+    params
+  })
+}

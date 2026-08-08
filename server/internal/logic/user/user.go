@@ -359,3 +359,126 @@ func syncUserPosts(ctx context.Context, userId uint64, postIds []uint64) error {
 	}
 	return nil
 }
+
+// Selector 人员选择器：按部门/角色/岗位过滤后组装部门树（叶子为用户）
+// 过滤规则：同类型数组内为并集(OR)，不同类型之间为交集(AND)
+func (s *sAdminUser) Selector(ctx context.Context, in *adminin.UserSelectorInp) ([]*adminin.UserSelectorNode, error) {
+	// 1. 查询符合条件的用户（排除超管、仅启用）
+	model := dao.AdminUser.Ctx(ctx).
+		Where("is_super", 0).
+		Where("status", 1)
+
+	if len(in.DeptIds) > 0 {
+		model = model.WhereIn("dept_id", in.DeptIds)
+	}
+	if len(in.RoleIds) > 0 {
+		model = model.Where("id IN (SELECT user_id FROM "+dao.AdminUserRole.Table()+" WHERE role_id IN (?))", in.RoleIds)
+	}
+	if len(in.PostIds) > 0 {
+		model = model.Where("id IN (SELECT user_id FROM "+dao.AdminUserPost.Table()+" WHERE post_id IN (?))", in.PostIds)
+	}
+	if in.Keyword != "" {
+		model = model.WhereLike("real_name", "%"+in.Keyword+"%")
+	}
+
+	var users []*entity.AdminUser
+	if err := model.Fields("id, real_name, nickname, username, dept_id").OrderAsc("id").Scan(&users); err != nil {
+		return nil, err
+	}
+
+	// 2. 查询所有启用的部门
+	var depts []*entity.AdminDept
+	if err := dao.AdminDept.Ctx(ctx).
+		Where("status", 1).
+		Fields("id, parent_id, name").
+		OrderAsc("sort, id").
+		Scan(&depts); err != nil {
+		return nil, err
+	}
+
+	// 3. 组装树（剪除无用户的部门节点）
+	return buildUserDeptTree(users, depts), nil
+}
+
+// buildUserDeptTree 组装部门树（叶子为用户），剪除无用户（或其子树无用户）的部门节点
+//
+// 用独立 map 分离"部门层级"与"用户挂载"，以真实 deptId 为键，
+// 避免用户 ID 与部门 ID 冲突导致的误判，并通过 visiting 集合检测环防止递归死循环。
+func buildUserDeptTree(users []*entity.AdminUser, depts []*entity.AdminDept) []*adminin.UserSelectorNode {
+	// 部门名称 + 层级（parentId -> 子部门ID）
+	nameOf := make(map[uint64]string, len(depts))
+	deptChildren := make(map[uint64][]uint64, len(depts))
+	for _, d := range depts {
+		nameOf[d.Id] = d.Name
+		if d.ParentId != 0 && d.ParentId != d.Id {
+			deptChildren[d.ParentId] = append(deptChildren[d.ParentId], d.Id)
+		}
+	}
+
+	// 用户挂载：deptId -> 用户叶子节点
+	deptUsers := make(map[uint64][]*adminin.UserSelectorNode)
+	var orphans []*adminin.UserSelectorNode
+	for _, u := range users {
+		leaf := &adminin.UserSelectorNode{Value: uint(u.Id), Label: displayName(u)}
+		if _, ok := nameOf[u.DeptId]; ok {
+			deptUsers[u.DeptId] = append(deptUsers[u.DeptId], leaf)
+		} else {
+			orphans = append(orphans, leaf)
+		}
+	}
+
+	// 递归组装：返回 (节点, 是否含用户)；空部门剪除
+	visiting := make(map[uint64]bool)
+	var build func(id uint64) (*adminin.UserSelectorNode, bool)
+	build = func(id uint64) (*adminin.UserSelectorNode, bool) {
+		if visiting[id] {
+			return nil, false
+		}
+		visiting[id] = true
+		defer func() { visiting[id] = false }()
+
+		node := &adminin.UserSelectorNode{Value: uint(id), Label: nameOf[id]}
+		hasUser := false
+		for _, cid := range deptChildren[id] {
+			if child, ok := build(cid); ok {
+				node.Children = append(node.Children, child)
+				hasUser = true
+			}
+		}
+		for _, leaf := range deptUsers[id] {
+			node.Children = append(node.Children, leaf)
+			hasUser = true
+		}
+		if !hasUser {
+			return nil, false
+		}
+		return node, true
+	}
+
+	// 收集根部门：父部门不在 depts 中
+	roots := []*adminin.UserSelectorNode{}
+	for _, d := range depts {
+		if _, ok := nameOf[d.ParentId]; !ok || d.ParentId == d.Id {
+			if node, ok := build(d.Id); ok {
+				roots = append(roots, node)
+			}
+		}
+	}
+	// 追加无部门的孤儿用户
+	roots = append(roots, orphans...)
+	return roots
+}
+
+// displayName 依次回退 real_name -> nickname -> username，保证非空
+func displayName(u *entity.AdminUser) string {
+	switch {
+	case u.RealName != "":
+		return u.RealName
+	case u.Nickname != "":
+		return u.Nickname
+	case u.Username != "":
+		return u.Username
+	default:
+		return fmt.Sprintf("U%d", u.Id)
+	}
+}

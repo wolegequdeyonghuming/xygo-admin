@@ -22,6 +22,9 @@ type (
 		Save(ctx context.Context, in *adminin.UserSaveInp) (uint, error)
 		// Delete 删除用户
 		Delete(ctx context.Context, id uint64) error
+		// Selector 人员选择器：按部门/角色/岗位过滤后组装部门树（叶子为用户）
+		// 过滤规则：同类型数组内为并集(OR)，不同类型之间为交集(AND)
+		Selector(ctx context.Context, in *adminin.UserSelectorInp) ([]*adminin.UserSelectorNode, error)
 	}
 )
 

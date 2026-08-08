@@ -150,14 +150,16 @@
           formatter: (row: any) => row.details ?? '-'
         },
         {
-          prop: 'telemarketerId',
-          label: '话务员',minWidth: 120,
-          formatter: (row: any) => row.telemarketerId ?? '-'
+          prop: 'telemarketer_real_name',
+          label: '话务员',
+          minWidth: 120,
+          formatter: (row: any) => row.telemarketer_real_name ?? '-'
         },
         {
-          prop: 'agentId',
-          label: '收单员',minWidth: 120,
-          formatter: (row: any) => row.agentId ?? '-'
+          prop: 'agent_real_name',
+          label: '收单员',
+          minWidth: 120,
+          formatter: (row: any) => row.agent_real_name ?? '-'
         },
         {
           prop: 'appointmentDesc',
@@ -166,7 +168,7 @@
         },
         {
           prop: 'followUpDesc',
-          label: '话务二次回放情况',minWidth: 160,
+          label: '话务二次回访情况', minWidth: 160,
           formatter: (row: any) => row.followUpDesc ?? '-'
         },
         {

@@ -83,3 +83,12 @@ func (c *ControllerV1) UserKick(ctx context.Context, req *api.UserKickReq) (res 
 
 	return &api.UserKickRes{}, nil
 }
+
+// UserSelector 人员选择器（部门树，叶子为用户）
+func (c *ControllerV1) UserSelector(ctx context.Context, req *api.UserSelectorReq) (res *api.UserSelectorRes, err error) {
+	list, err := service.AdminUser().Selector(ctx, &req.UserSelectorInp)
+	if err != nil {
+		return nil, err
+	}
+	return &api.UserSelectorRes{UserSelectorModel: adminin.UserSelectorModel{List: list}}, nil
+}

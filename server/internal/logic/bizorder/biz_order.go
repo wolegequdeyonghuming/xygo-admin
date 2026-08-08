@@ -65,9 +65,10 @@ func (s *sBizOrder) List(ctx context.Context, in *adminin.BizOrderListInp) (*adm
 		in.PageSize = 20
 	}
 	// 计数后添加 Fields
-	model = model.Fields("t.*")
-	model = model.Fields("telemarketer.real_name as telemarketer_real_name")
-	model = model.Fields("agent.real_name as agent_real_name")
+	// real_name 为空时回退到 nickname，保证话务员/收单员姓名可读
+	model = model.Fields("t.*, " +
+		"CASE WHEN telemarketer.real_name != '' THEN telemarketer.real_name ELSE telemarketer.nickname END as telemarketer_real_name, " +
+		"CASE WHEN agent.real_name != '' THEN agent.real_name ELSE agent.nickname END as agent_real_name")
 	var list []adminin.BizOrderListItem
 	err = model.Page(in.Page, in.PageSize).OrderDesc("t.id").Scan(&list)
 	if err != nil {
@@ -93,9 +94,10 @@ func (s *sBizOrder) View(ctx context.Context, id uint64) (*adminin.BizOrderViewM
 	model := dao.BizOrder.Ctx(ctx).As("t")
 	model = model.LeftJoin("xy_admin_user telemarketer", "telemarketer.id = t.telemarketer_id")
 	model = model.LeftJoin("xy_admin_user agent", "agent.id = t.agent_id")
-	model = model.Fields("t.*")
-	model = model.Fields("telemarketer.real_name as telemarketer_real_name")
-	model = model.Fields("agent.real_name as agent_real_name")
+	// real_name 为空时回退到 nickname，保证话务员/收单员姓名可读
+	model = model.Fields("t.*, " +
+		"CASE WHEN telemarketer.real_name != '' THEN telemarketer.real_name ELSE telemarketer.nickname END as telemarketer_real_name, " +
+		"CASE WHEN agent.real_name != '' THEN agent.real_name ELSE agent.nickname END as agent_real_name")
 	err := model.Where("t.id", id).Scan(&item)
 	if err != nil {
 		return nil, err
