@@ -57,7 +57,7 @@ type {{.VarName}}ListItem struct {
 	{{.PkGoName}} {{.PkGoType}} `json:"{{.PkTsName}}" dc:"主键"`
 {{- range .ListColumns}}
 {{- if ne .Name $.PkColumn}}
-	{{.GoName}} {{.GoType}} `json:"{{.TsName}}" dc:"{{.Comment}}"`
+	{{.GoName}} {{if and .IsNullable (eq .TsType "number")}}*{{end}}{{.GoType}} `json:"{{.TsName}}" dc:"{{.Comment}}"`
 {{- end}}
 {{- end}}
 {{- if .HasRelations}}
@@ -85,7 +85,15 @@ type {{.VarName}}ListModel struct {
 // {{.VarName}}ViewModel {{.TableComment}}详情出参
 type {{.VarName}}ViewModel struct {
 {{- range .AllColumns}}
-	{{.GoName}} {{.GoType}} `json:"{{.TsName}}" dc:"{{.Comment}}"`
+	{{.GoName}} {{if and .IsNullable (eq .TsType "number")}}*{{end}}{{.GoType}} `json:"{{.TsName}}" dc:"{{.Comment}}"`
+{{- end}}
+{{- if .HasRelations}}
+	// 关联表字段（来自 LeftJoin）
+{{- range $rel := .Relations}}
+{{- if not $rel.IsMultiple}}
+	{{$rel.RelationName}}{{pascalCase $rel.RemoteField}} string `json:"{{$rel.RelationAlias}}_{{$rel.RemoteField}}" dc:"{{$rel.RelationName}}{{$rel.RemoteField}}"`
+{{- end}}
+{{- end}}
 {{- end}}
 }
 {{- end}}

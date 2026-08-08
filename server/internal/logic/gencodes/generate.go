@@ -135,6 +135,7 @@ type TplColumn struct {
 	IsTimeField     bool
 	IsStatusField   bool
 	IsAutoIncrement bool          // 是否自增（用于判断主键是否需在 INSERT 中显式赋值）
+	IsNullable      bool          // 是否可空（用于数值字段是否用指针类型区分 null 与 0）
 	HasOptions      bool          // 是否有解析出的选项
 	DictType        string        // 字典类型标识（非空表示使用动态字典）
 	RadioOptions    []RadioOption // 兼容旧模板
@@ -1116,6 +1117,7 @@ func buildTplColumn(col adminin.GenCodesColumnItem) TplColumn {
 		QueryType:       col.QueryType,
 		Required:        col.IsRequired == 1,
 		IsAutoIncrement: col.IsAutoIncrement == 1,
+		IsNullable:      col.IsNullable == 1,
 	}
 
 	// Label: 提取注释中冒号前的部分

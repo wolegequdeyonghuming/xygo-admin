@@ -160,6 +160,7 @@ type GenCodesColumnItem struct {
 	Extra           string `json:"extra"      dc:"扩展配置JSON"`
 	DictType        string `json:"dictType"   dc:"字典类型"`
 	IsAutoIncrement int    `json:"isAutoIncrement" dc:"是否自增"`
+	IsNullable      int    `json:"isNullable" dc:"是否可空"`
 	Sort            int    `json:"sort"       dc:"排序"`
 }
 

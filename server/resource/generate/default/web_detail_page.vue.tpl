@@ -91,6 +91,8 @@
           </div>
           <span v-else>-</span>
         </ElDescriptionsItem>
+{{- else if or .IsRemoteSelect .IsRemoteSelects}}
+        <ElDescriptionsItem label="{{.Label}}">{{"{{"}} detail.{{.RelationAlias}}_{{.RemoteField}} ?? '-' {{"}}"}}</ElDescriptionsItem>
 {{- else}}
         <ElDescriptionsItem label="{{.Label}}">{{"{{"}} detail.{{.TsName}} ?? '-' {{"}}"}}</ElDescriptionsItem>
 {{- end}}

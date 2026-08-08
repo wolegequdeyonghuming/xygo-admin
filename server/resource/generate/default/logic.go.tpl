@@ -347,7 +347,23 @@ func (s *s{{.VarName}}) List(ctx context.Context, in *adminin.{{.VarName}}ListIn
 // View {{.TableComment}}详情
 func (s *s{{.VarName}}) View(ctx context.Context, id uint64) (*adminin.{{.VarName}}ViewModel, error) {
 	var item adminin.{{.VarName}}ViewModel
+{{- if .HasRelations}}
+	model := dao.{{.DaoName}}.Ctx(ctx).As("t")
+{{- range $rel := .Relations}}
+{{- if not $rel.IsMultiple}}
+	model = model.LeftJoin("{{$rel.RemoteTable}} {{$rel.RelationAlias}}", "{{$rel.RelationAlias}}.{{$rel.RemotePk}} = t.{{$rel.FieldName}}")
+{{- end}}
+{{- end}}
+	model = model.Fields("t.*")
+{{- range $rel := .Relations}}
+{{- if not $rel.IsMultiple}}
+	model = model.Fields("{{$rel.RelationAlias}}.{{$rel.RemoteField}} as {{$rel.RelationAlias}}_{{$rel.RemoteField}}")
+{{- end}}
+{{- end}}
+	err := model.Where("t.{{.PkColumn}}", id).Scan(&item)
+{{- else}}
 	err := dao.{{.DaoName}}.Ctx(ctx).Where("{{.PkColumn}}", id).Scan(&item)
+{{- end}}
 	if err != nil {
 		return nil, err
 	}
