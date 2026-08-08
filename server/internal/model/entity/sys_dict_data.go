@@ -6,7 +6,7 @@ package entity
 
 // SysDictData is the golang structure for table sys_dict_data.
 type SysDictData struct {
-	Id         uint64 `json:"id"         orm:"id"           description:""`                   //
+	Id         uint64 `json:"id"         orm:"id"           description:"主键"`                 // 主键
 	DictTypeId uint64 `json:"dictTypeId" orm:"dict_type_id" description:"关联字典类型ID"`           // 关联字典类型ID
 	Label      string `json:"label"      orm:"label"        description:"字典标签"`               // 字典标签
 	Value      string `json:"value"      orm:"value"        description:"字典值"`                // 字典值

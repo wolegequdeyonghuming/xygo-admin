@@ -11,7 +11,7 @@ import (
 // SysDictData is the golang structure of table xy_sys_dict_data for DAO operations like Where/Data.
 type SysDictData struct {
 	g.Meta     `orm:"table:xy_sys_dict_data, do:true"`
-	Id         any //
+	Id         any // 主键
 	DictTypeId any // 关联字典类型ID
 	Label      any // 字典标签
 	Value      any // 字典值

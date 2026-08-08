@@ -21,7 +21,7 @@ type SysDictTypeDao struct {
 
 // SysDictTypeColumns defines and stores column names for the table xy_sys_dict_type.
 type SysDictTypeColumns struct {
-	Id         string //
+	Id         string // 主键
 	Name       string // 字典名称
 	Type       string // 字典标识
 	Remark     string // 备注

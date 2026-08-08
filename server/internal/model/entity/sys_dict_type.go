@@ -6,7 +6,7 @@ package entity
 
 // SysDictType is the golang structure for table sys_dict_type.
 type SysDictType struct {
-	Id         uint64 `json:"id"         orm:"id"          description:""`             //
+	Id         uint64 `json:"id"         orm:"id"          description:"主键"`           // 主键
 	Name       string `json:"name"       orm:"name"        description:"字典名称"`         // 字典名称
 	Type       string `json:"type"       orm:"type"        description:"字典标识"`         // 字典标识
 	Remark     string `json:"remark"     orm:"remark"      description:"备注"`           // 备注

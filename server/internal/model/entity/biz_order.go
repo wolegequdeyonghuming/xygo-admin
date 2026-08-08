@@ -43,4 +43,6 @@ type BizOrder struct {
 	UpdatedAt         int64       `json:"updatedAt"         orm:"updated_at"          description:"更新时间"`     // 更新时间
 	IsDeleted         int         `json:"isDeleted"         orm:"is_deleted"          description:"是否删除"`     // 是否删除
 	Remark            string      `json:"remark"            orm:"remark"              description:"备注"`       // 备注
+	OrderStatus       int         `json:"orderStatus"       orm:"order_status"        description:"订单状态"`     // 订单状态
+	AttachmentId      string      `json:"attachmentId"      orm:"attachment_id"       description:"附件id"`     // 附件id
 }

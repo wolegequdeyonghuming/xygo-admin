@@ -45,4 +45,6 @@ type BizOrder struct {
 	UpdatedAt         any         // 更新时间
 	IsDeleted         any         // 是否删除
 	Remark            any         // 备注
+	OrderStatus       any         // 订单状态
+	AttachmentId      any         // 附件id
 }

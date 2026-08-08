@@ -12,4 +12,5 @@ type BizOrderDetails struct {
 	UpdatedAt int64  `json:"updatedAt" orm:"updated_at" description:"修改时间"` // 修改时间
 	UserId    int64  `json:"userId"    orm:"user_id"    description:"操作人"`  // 操作人
 	Content   string `json:"content"   orm:"content"    description:"内容"`   // 内容
+	IsDeleted int    `json:"isDeleted" orm:"is_deleted" description:"是否删除"` // 是否删除
 }

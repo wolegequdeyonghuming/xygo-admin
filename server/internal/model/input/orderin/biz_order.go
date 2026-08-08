@@ -1,0 +1,147 @@
+package orderin
+
+import (
+	"github.com/gogf/gf/v2/os/gtime"
+	"xygo/internal/model/input/form"
+)
+
+// ==================== 订单主表 ====================
+
+// BizOrderListInp 订单主表列表入参
+type BizOrderListInp struct {
+	form.PageReq
+	OrderStatus       *int   `json:"orderStatus" dc:"订单状态"`
+	ScheduleDateStart string `json:"scheduleDateStart" dc:"排单日期开始值"`
+	ScheduleDateEnd   string `json:"scheduleDateEnd" dc:"排单日期结束值"`
+	VisitDateStart    string `json:"visitDateStart" dc:"上门日期开始值"`
+	VisitDateEnd      string `json:"visitDateEnd" dc:"上门日期结束值"`
+	CustomerName      string `json:"customerName" dc:"客户姓名"`
+	Area              *int   `json:"area" dc:"区县（字典）"`
+	InstallAddress    string `json:"installAddress" dc:"安装地址"`
+	ContactPhone      string `json:"contactPhone" dc:"联系电话"`
+	BusinessType      string `json:"businessType" dc:"预约业务"`
+	// 关联表搜索字段
+}
+
+// BizOrderListItem 订单主表列表项
+type BizOrderListItem struct {
+	Id                int64       `json:"id" dc:"主键"`
+	OrderStatus       *int        `json:"orderStatus" dc:"订单状态"`
+	ScheduleDate      *gtime.Time `json:"scheduleDate" dc:"排单日期"`
+	VisitDate         *gtime.Time `json:"visitDate" dc:"上门日期"`
+	CustomerName      string      `json:"customerName" dc:"客户姓名"`
+	AvailableTimeDesc string      `json:"availableTimeDesc" dc:"可联系时间"`
+	Area              *int        `json:"area" dc:"区县（字典）"`
+	InstallAddress    string      `json:"installAddress" dc:"安装地址"`
+	ContactPhone      string      `json:"contactPhone" dc:"联系电话"`
+	BusinessType      string      `json:"businessType" dc:"预约业务"`
+	ExpiryDate        string      `json:"expiryDate" dc:"到期时间"`
+	PrimaryTelNo      string      `json:"primaryTelNo" dc:"主卡号码"`
+	Details           string      `json:"details" dc:"详细情况（关联）"`
+	TelemarketerId    *int64      `json:"telemarketerId" dc:"话务员"`
+	AgentId           *int64      `json:"agentId" dc:"收单员"`
+	AppointmentDesc   string      `json:"appointmentDesc" dc:"收单预约情况"`
+	FollowUpDesc      string      `json:"followUpDesc" dc:"话务二次回放情况"`
+	DealtBusinessType string      `json:"dealtBusinessType" dc:"成交业务"`
+	PortingStatus     string      `json:"portingStatus" dc:"携转情况"`
+	CustomerRealName  string      `json:"customerRealName" dc:"客户实际姓名"`
+	CustomerIdNumber  *int64      `json:"customerIdNumber" dc:"客户身份证号"`
+	PaidAmount        *float64    `json:"paidAmount" dc:"实缴额度（元）"`
+	IsRuralOrder      *int        `json:"isRuralOrder" dc:"是否乡下单"`
+	NewPhoneNo        string      `json:"newPhoneNo" dc:"新开号码"`
+	DeviceSerial      string      `json:"deviceSerial" dc:"终端串码"`
+	BroadbandAccount  string      `json:"broadbandAccount" dc:"宽带账号"`
+	IsCompleted       *int        `json:"isCompleted" dc:"是否完工"`
+	SubsidyAmount     *float64    `json:"subsidyAmount" dc:"话补"`
+	AgencyNo          string      `json:"agencyNo" dc:"工号"`
+	IsNew             string      `json:"isNew" dc:"是否纯新增"`
+	Remark            string      `json:"remark" dc:"备注"`
+	// 关联表字段（来自 LeftJoin）
+	TelemarketerRealName string `json:"telemarketer_real_name" dc:"Telemarketerreal_name"`
+	AgentRealName        string `json:"agent_real_name" dc:"Agentreal_name"`
+}
+
+// BizOrderListModel 订单主表列表出参
+type BizOrderListModel struct {
+	List []BizOrderListItem `json:"list"`
+	form.PageRes
+}
+
+// BizOrderViewModel 订单主表详情出参
+type BizOrderViewModel struct {
+	Id                int64       `json:"id" dc:"主键"`
+	OrderStatus       *int        `json:"orderStatus" dc:"订单状态"`
+	ScheduleDate      *gtime.Time `json:"scheduleDate" dc:"排单日期"`
+	VisitDate         *gtime.Time `json:"visitDate" dc:"上门日期"`
+	CustomerName      string      `json:"customerName" dc:"客户姓名"`
+	AvailableTimeDesc string      `json:"availableTimeDesc" dc:"可联系时间"`
+	Area              *int        `json:"area" dc:"区县（字典）"`
+	InstallAddress    string      `json:"installAddress" dc:"安装地址"`
+	ContactPhone      string      `json:"contactPhone" dc:"联系电话"`
+	BusinessType      string      `json:"businessType" dc:"预约业务"`
+	ExpiryDate        string      `json:"expiryDate" dc:"到期时间"`
+	PrimaryTelNo      string      `json:"primaryTelNo" dc:"主卡号码"`
+	Details           string      `json:"details" dc:"详细情况（关联）"`
+	TelemarketerId    *int64      `json:"telemarketerId" dc:"话务员"`
+	AgentId           *int64      `json:"agentId" dc:"收单员"`
+	AppointmentDesc   string      `json:"appointmentDesc" dc:"收单预约情况"`
+	FollowUpDesc      string      `json:"followUpDesc" dc:"话务二次回放情况"`
+	DealtBusinessType string      `json:"dealtBusinessType" dc:"成交业务"`
+	PortingStatus     string      `json:"portingStatus" dc:"携转情况"`
+	CustomerRealName  string      `json:"customerRealName" dc:"客户实际姓名"`
+	CustomerIdNumber  *int64      `json:"customerIdNumber" dc:"客户身份证号"`
+	PaidAmount        *float64    `json:"paidAmount" dc:"实缴额度（元）"`
+	IsRuralOrder      *int        `json:"isRuralOrder" dc:"是否乡下单"`
+	NewPhoneNo        string      `json:"newPhoneNo" dc:"新开号码"`
+	DeviceSerial      string      `json:"deviceSerial" dc:"终端串码"`
+	BroadbandAccount  string      `json:"broadbandAccount" dc:"宽带账号"`
+	IsCompleted       *int        `json:"isCompleted" dc:"是否完工"`
+	SubsidyAmount     *float64    `json:"subsidyAmount" dc:"话补"`
+	AgencyNo          string      `json:"agencyNo" dc:"工号"`
+	IsNew             string      `json:"isNew" dc:"是否纯新增"`
+	CreatedAt         int64       `json:"createdAt" dc:"创建时间"`
+	UpdatedAt         int64       `json:"updatedAt" dc:"更新时间"`
+	IsDeleted         int         `json:"isDeleted" dc:"是否删除"`
+	Remark            string      `json:"remark" dc:"备注"`
+	AttachmentId      string      `json:"attachmentId" dc:"附件"`
+
+	// 关联表字段（来自 LeftJoin）
+	TelemarketerRealName string `json:"telemarketer_real_name" dc:"话务员姓名"`
+	AgentRealName        string `json:"agent_real_name" dc:"收单员姓名"`
+}
+
+// BizOrderEditInp 订单主表编辑入参
+type BizOrderEditInp struct {
+	Id                int64       `json:"id" dc:"主键"`
+	OrderStatus       int         `json:"orderStatus" dc:"订单状态"`
+	ScheduleDate      *gtime.Time `json:"scheduleDate" dc:"排单日期"`
+	VisitDate         *gtime.Time `json:"visitDate" dc:"上门日期"`
+	CustomerName      string      `json:"customerName" v:"required#客户姓名不能为空" dc:"客户姓名"`
+	AvailableTimeDesc string      `json:"availableTimeDesc" dc:"可联系时间"`
+	Area              int         `json:"area" dc:"区县（字典）"`
+	InstallAddress    string      `json:"installAddress" dc:"安装地址"`
+	ContactPhone      string      `json:"contactPhone" v:"required#联系电话不能为空" dc:"联系电话"`
+	BusinessType      string      `json:"businessType" dc:"预约业务"`
+	ExpiryDate        string      `json:"expiryDate" dc:"到期时间"`
+	PrimaryTelNo      string      `json:"primaryTelNo" dc:"主卡号码"`
+	Details           string      `json:"details" dc:"详细情况（关联）"`
+	TelemarketerId    int64       `json:"telemarketerId" dc:"话务员"`
+	AgentId           int64       `json:"agentId" dc:"收单员"`
+	AppointmentDesc   string      `json:"appointmentDesc" dc:"收单预约情况"`
+	FollowUpDesc      string      `json:"followUpDesc" dc:"话务二次回放情况"`
+	DealtBusinessType string      `json:"dealtBusinessType" dc:"成交业务"`
+	PortingStatus     string      `json:"portingStatus" dc:"携转情况"`
+	CustomerRealName  string      `json:"customerRealName" dc:"客户实际姓名"`
+	CustomerIdNumber  int64       `json:"customerIdNumber" dc:"客户身份证号"`
+	PaidAmount        float64     `json:"paidAmount" dc:"实缴额度（元）"`
+	IsRuralOrder      int         `json:"isRuralOrder" dc:"是否乡下单"`
+	NewPhoneNo        string      `json:"newPhoneNo" dc:"新开号码"`
+	DeviceSerial      string      `json:"deviceSerial" dc:"终端串码"`
+	BroadbandAccount  string      `json:"broadbandAccount" dc:"宽带账号"`
+	IsCompleted       int         `json:"isCompleted" dc:"是否完工"`
+	SubsidyAmount     float64     `json:"subsidyAmount" dc:"话补"`
+	AgencyNo          string      `json:"agencyNo" dc:"工号"`
+	IsNew             string      `json:"isNew" dc:"是否纯新增"`
+	Remark            string      `json:"remark" dc:"备注"`
+	AttachmentId      string      `json:"attachmentId" dc:"附件"`
+}

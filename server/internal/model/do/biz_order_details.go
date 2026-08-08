@@ -17,4 +17,5 @@ type BizOrderDetails struct {
 	UpdatedAt any // 修改时间
 	UserId    any // 操作人
 	Content   any // 内容
+	IsDeleted any // 是否删除
 }

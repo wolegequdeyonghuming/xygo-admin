@@ -6,6 +6,7 @@ package logic
 
 import (
 	_ "xygo/internal/logic/admin"
+	_ "xygo/internal/logic/bizorder"
 	_ "xygo/internal/logic/chat"
 	_ "xygo/internal/logic/cmsdoc"
 	_ "xygo/internal/logic/cron"

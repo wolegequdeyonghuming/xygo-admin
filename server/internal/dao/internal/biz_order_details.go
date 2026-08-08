@@ -27,6 +27,7 @@ type BizOrderDetailsColumns struct {
 	UpdatedAt string // 修改时间
 	UserId    string // 操作人
 	Content   string // 内容
+	IsDeleted string // 是否删除
 }
 
 // bizOrderDetailsColumns holds the columns for the table xy_biz_order_details.
@@ -37,6 +38,7 @@ var bizOrderDetailsColumns = BizOrderDetailsColumns{
 	UpdatedAt: "updated_at",
 	UserId:    "user_id",
 	Content:   "content",
+	IsDeleted: "is_deleted",
 }
 
 // NewBizOrderDetailsDao creates and returns a new DAO object for table data access.

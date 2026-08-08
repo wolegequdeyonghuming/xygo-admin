@@ -54,6 +54,8 @@ type BizOrderColumns struct {
 	UpdatedAt         string // 更新时间
 	IsDeleted         string // 是否删除
 	Remark            string // 备注
+	OrderStatus       string // 订单状态
+	AttachmentId      string // 附件id
 }
 
 // bizOrderColumns holds the columns for the table xy_biz_order.
@@ -91,6 +93,8 @@ var bizOrderColumns = BizOrderColumns{
 	UpdatedAt:         "updated_at",
 	IsDeleted:         "is_deleted",
 	Remark:            "remark",
+	OrderStatus:       "order_status",
+	AttachmentId:      "attachment_id",
 }
 
 // NewBizOrderDao creates and returns a new DAO object for table data access.
