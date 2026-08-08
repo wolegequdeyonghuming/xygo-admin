@@ -40,19 +40,6 @@
               <span class="ml-2 text-sm">{{ profileData.deptFullPath || '暂无部门' }}</span>
             </div>
           </div>
-
-          <div class="mt-10">
-            <h3 class="text-sm font-medium">标签</h3>
-            <div class="flex flex-wrap justify-center mt-3.5">
-              <div
-                v-for="item in lableList"
-                :key="item"
-                class="py-1 px-1.5 mr-2.5 mb-2.5 text-xs border border-g-300 rounded"
-              >
-                {{ item }}
-              </div>
-            </div>
-          </div>
         </div>
       </div>
       <div class="flex-1 overflow-hidden max-md:w-full max-md:mt-3.5">
@@ -280,11 +267,6 @@
     { value: '1', label: '男' },
     { value: '2', label: '女' }
   ]
-
-  /**
-   * 用户标签列表
-   */
-  const lableList: Array<string> = ['专注设计', '很有想法', '辣~', '大长腿', '川妹子', '海纳百川']
 
   onMounted(async () => {
     getDate()
