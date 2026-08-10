@@ -27,7 +27,7 @@ type BizOrder struct {
 	TelemarketerId    any         // 话务员id
 	AgentId           any         // 收单员id
 	AppointmentDesc   any         // 收单预约情况
-	FollowUpDesc      any         // 话务二次回放情况
+	FollowUpDesc      any         // 话务二次回访情况
 	DealtBusinessType any         // 成交业务
 	PortingStatus     any         // 携转情况
 	CustomerRealName  any         // 客户实际姓名
@@ -47,4 +47,5 @@ type BizOrder struct {
 	Remark            any         // 备注
 	OrderStatus       any         // 订单状态
 	AttachmentId      any         // 附件id
+	CreatedBy         any         // 创建人id
 }

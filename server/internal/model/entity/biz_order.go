@@ -25,11 +25,11 @@ type BizOrder struct {
 	TelemarketerId    int64       `json:"telemarketerId"    orm:"telemarketer_id"     description:"话务员id"`    // 话务员id
 	AgentId           int64       `json:"agentId"           orm:"agent_id"            description:"收单员id"`    // 收单员id
 	AppointmentDesc   string      `json:"appointmentDesc"   orm:"appointment_desc"    description:"收单预约情况"`   // 收单预约情况
-	FollowUpDesc      string      `json:"followUpDesc"      orm:"follow_up_desc"      description:"话务二次回放情况"` // 话务二次回放情况
+	FollowUpDesc      string      `json:"followUpDesc"      orm:"follow_up_desc"      description:"话务二次回访情况"` // 话务二次回访情况
 	DealtBusinessType string      `json:"dealtBusinessType" orm:"dealt_business_type" description:"成交业务"`     // 成交业务
 	PortingStatus     string      `json:"portingStatus"     orm:"porting_status"      description:"携转情况"`     // 携转情况
 	CustomerRealName  string      `json:"customerRealName"  orm:"customer_real_name"  description:"客户实际姓名"`   // 客户实际姓名
-	CustomerIdNumber  int64       `json:"customerIdNumber"  orm:"customer_id_number"  description:"客户身份证号"`   // 客户身份证号
+	CustomerIdNumber  string      `json:"customerIdNumber"  orm:"customer_id_number"  description:"客户身份证号"`   // 客户身份证号
 	PaidAmount        float64     `json:"paidAmount"        orm:"paid_amount"         description:"实缴额度（元）"`  // 实缴额度（元）
 	IsRuralOrder      int         `json:"isRuralOrder"      orm:"is_rural_order"      description:"是否乡下单"`    // 是否乡下单
 	NewPhoneNo        string      `json:"newPhoneNo"        orm:"new_phone_no"        description:"新开号码"`     // 新开号码
@@ -45,4 +45,5 @@ type BizOrder struct {
 	Remark            string      `json:"remark"            orm:"remark"              description:"备注"`       // 备注
 	OrderStatus       int         `json:"orderStatus"       orm:"order_status"        description:"订单状态"`     // 订单状态
 	AttachmentId      string      `json:"attachmentId"      orm:"attachment_id"       description:"附件id"`     // 附件id
+	CreatedBy         int64       `json:"createdBy"         orm:"created_by"          description:"创建人id"`    // 创建人id
 }

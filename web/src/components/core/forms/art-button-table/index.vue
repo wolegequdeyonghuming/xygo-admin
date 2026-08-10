@@ -18,6 +18,7 @@
     @click="handleClick"
   >
     <ArtSvgIcon :icon="iconContent" />
+    {{ label }}
   </div>
 </template>
 
@@ -35,6 +36,8 @@
     iconColor?: string
     /** 按钮背景色 */
     buttonBgColor?: string
+    /** 文字 */
+    label?: string
   }
 
   const props = withDefaults(defineProps<Props>(), {})

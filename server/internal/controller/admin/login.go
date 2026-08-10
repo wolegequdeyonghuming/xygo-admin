@@ -261,14 +261,20 @@ func (c *ControllerV1) Profile(ctx context.Context, req *api.ProfileReq) (res *a
 
 	// 查询当前用户绑定的角色编码列表（role.key），状态为启用的角色才生效
 	var roleKeys []string
+	var roleRows []struct {
+		Key string `json:"key"`
+	}
 	err = dao.AdminRole.Ctx(ctx).
 		LeftJoin(dao.AdminUserRole.Table()+" aur", "aur.role_id = "+dao.AdminRole.Table()+".id").
 		Where("aur.user_id", au.Id).
 		Where(dao.AdminRole.Table()+".status", 1).
 		Fields(dao.AdminRole.Columns().Key).
-		Scan(&roleKeys)
+		Scan(&roleRows)
 	if err != nil {
 		return nil, err
+	}
+	for _, r := range roleRows {
+		roleKeys = append(roleKeys, r.Key)
 	}
 
 	// 查询部门全路径

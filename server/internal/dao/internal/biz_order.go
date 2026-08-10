@@ -36,7 +36,7 @@ type BizOrderColumns struct {
 	TelemarketerId    string // 话务员id
 	AgentId           string // 收单员id
 	AppointmentDesc   string // 收单预约情况
-	FollowUpDesc      string // 话务二次回放情况
+	FollowUpDesc      string // 话务二次回访情况
 	DealtBusinessType string // 成交业务
 	PortingStatus     string // 携转情况
 	CustomerRealName  string // 客户实际姓名
@@ -56,6 +56,7 @@ type BizOrderColumns struct {
 	Remark            string // 备注
 	OrderStatus       string // 订单状态
 	AttachmentId      string // 附件id
+	CreatedBy         string // 创建人id
 }
 
 // bizOrderColumns holds the columns for the table xy_biz_order.
@@ -95,6 +96,7 @@ var bizOrderColumns = BizOrderColumns{
 	Remark:            "remark",
 	OrderStatus:       "order_status",
 	AttachmentId:      "attachment_id",
+	CreatedBy:         "created_by",
 }
 
 // NewBizOrderDao creates and returns a new DAO object for table data access.

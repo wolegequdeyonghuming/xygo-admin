@@ -40,3 +40,47 @@ type BizOrderDeleteReq struct {
 }
 
 type BizOrderDeleteRes struct{}
+
+// BizOrderStepEditReq 订单主表分步保存请求
+type BizOrderStepEditReq struct {
+	g.Meta `path:"/admin/biz-order/stepEdit" method:"post" tags:"BizOrder" summary:"订单分步保存"`
+	adminin.BizOrderStepEditInp
+}
+
+type BizOrderStepEditRes struct {
+	Id uint64 `json:"id" dc:"订单ID（录单新增时返回）"`
+}
+
+// BizOrderStepNextReq 订单推进下一步请求
+type BizOrderStepNextReq struct {
+	g.Meta `path:"/admin/biz-order/stepNext" method:"post" tags:"BizOrder" summary:"订单推进下一步"`
+	Id     uint64 `json:"id" v:"required#ID不能为空" dc:"ID"`
+}
+
+type BizOrderStepNextRes struct{}
+
+// BizOrderDetailListReq 订单详细情况列表请求
+type BizOrderDetailListReq struct {
+	g.Meta `path:"/admin/biz-order/detailList" method:"get" tags:"BizOrder" summary:"订单详细情况列表"`
+	adminin.BizOrderDetailListInp
+}
+
+type BizOrderDetailListRes struct {
+	*adminin.BizOrderDetailListModel
+}
+
+// BizOrderDetailAddReq 新增订单详细情况请求
+type BizOrderDetailAddReq struct {
+	g.Meta `path:"/admin/biz-order/detailAdd" method:"post" tags:"BizOrder" summary:"新增订单详细情况"`
+	adminin.BizOrderDetailAddInp
+}
+
+type BizOrderDetailAddRes struct{}
+
+// BizOrderDetailDeleteReq 删除订单详细情况请求
+type BizOrderDetailDeleteReq struct {
+	g.Meta `path:"/admin/biz-order/detailDelete" method:"post" tags:"BizOrder" summary:"删除订单详细情况"`
+	adminin.BizOrderDetailDeleteInp
+}
+
+type BizOrderDetailDeleteRes struct{}
