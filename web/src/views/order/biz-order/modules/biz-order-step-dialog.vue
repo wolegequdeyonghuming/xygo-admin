@@ -69,7 +69,11 @@
         <!-- 2 派单 -->
         <ElCol v-if="step === STEP.ASSIGN" :span="24">
           <ElFormItem label="收单员" prop="agentId">
-            <ArtPersonSelector v-model="formData.agentId" placeholder="请选择收单员" />
+            <ArtPersonSelector
+              v-model="formData.agentId"
+              placeholder="请选择收单员"
+              :role-ids="[8, 11]"
+            />
           </ElFormItem>
         </ElCol>
 
