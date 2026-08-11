@@ -124,8 +124,9 @@
         {
           prop: 'orderStatus',
           label: '订单状态',
-          width: 100,
+          width: 90,
           align: 'center',
+          fixed: 'left',
           formatter: (row: any) =>
             h(DictLabel, { dictType: 'order_status', value: row.orderStatus })
         },
@@ -133,18 +134,21 @@
           prop: 'scheduleDate',
           label: '排单日期',
           width: 120,
+          fixed: 'left',
           formatter: (row: any) => formatTimestamp(row.scheduleDate, 'date')
         },
         {
           prop: 'visitDate',
           label: '上门日期',
           width: 120,
+          fixed: 'left',
           formatter: (row: any) => formatTimestamp(row.visitDate, 'date')
         },
         {
           prop: 'customerName',
           label: '客户姓名',
-          minWidth: 120,
+          minWidth: 100,
+          fixed: 'left',
           formatter: (row: any) => row.customerName ?? '-'
         },
         {
