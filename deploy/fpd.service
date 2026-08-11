@@ -1,0 +1,15 @@
+[Unit]
+Description=Fpd Admin Server
+After=network.target postgresql.service redis.service
+
+[Service]
+Type=simple
+WorkingDirectory=/home/fpd/server
+ExecStart=/home/fpd/server/fpd
+Restart=always
+RestartSec=5
+Environment="GF_GCFG_FILE=/home/fpd/server/config/config.yaml"
+# 如果需要其他环境变量，在此添加
+
+[Install]
+WantedBy=multi-user.target

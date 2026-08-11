@@ -89,12 +89,12 @@
         </ElForm>
 
         <!-- Footer -->
-        <div class="mt-10 text-center">
+<!--        <div class="mt-10 text-center">
           <p class="text-sm text-clay-muted font-medium">
             还没有账号？
             <RouterLink to="/user/register" class="text-clay-accent font-black hover:underline ml-1">立即注册</RouterLink>
           </p>
-        </div>
+        </div>-->
       </div>
 
       <!-- 装饰球 -->

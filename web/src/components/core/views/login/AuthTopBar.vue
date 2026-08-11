@@ -40,7 +40,7 @@
           />
         </div>
       </div>
-      <ElDropdown
+      <!--      <ElDropdown
         v-if="shouldShowLanguage"
         @command="changeLanguage"
         popper-class="langDropDownStyle"
@@ -64,7 +64,7 @@
             </div>
           </ElDropdownMenu>
         </template>
-      </ElDropdown>
+      </ElDropdown>-->
       <div
         v-if="shouldShowThemeToggle"
         class="btn theme-btn h-8 w-8 c-p flex-cc tad-300"

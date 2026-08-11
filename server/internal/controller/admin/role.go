@@ -388,6 +388,12 @@ func getManageableRoleIds(ctx context.Context) ([]uint64, bool, error) {
 		return []uint64{}, false, nil
 	}
 
+	// 当前用户是否拥有"全部数据权限"（data_scope=1）：是则可管理所有非超管角色
+	hasAllScope, err := currentRolesHaveAllScope(ctx, roleIds)
+	if err != nil {
+		return nil, false, err
+	}
+
 	var roles []entity.AdminRole
 	if err = dao.AdminRole.Ctx(ctx).Scan(&roles); err != nil {
 		return nil, false, err
@@ -395,7 +401,13 @@ func getManageableRoleIds(ctx context.Context) ([]uint64, bool, error) {
 
 	manageableIds := make([]uint64, 0)
 	for _, role := range roles {
+		// 超级管理员角色与自身角色始终不可管理
 		if consts.IsSuperRole(role.Key) || uint64In(role.Id, roleIds) {
+			continue
+		}
+		// 全部数据权限：可管理所有非超管角色
+		if hasAllScope {
+			manageableIds = append(manageableIds, role.Id)
 			continue
 		}
 		for _, currentRoleId := range roleIds {
@@ -408,6 +420,23 @@ func getManageableRoleIds(ctx context.Context) ([]uint64, bool, error) {
 	return manageableIds, false, nil
 }
 
+// currentRolesHaveAllScope 判断当前用户是否拥有"全部数据权限"的角色（data_scope=1）
+func currentRolesHaveAllScope(ctx context.Context, roleIds []uint64) (bool, error) {
+	var roles []entity.AdminRole
+	if err := dao.AdminRole.Ctx(ctx).
+		WhereIn(dao.AdminRole.Columns().Id, roleIds).
+		Fields("id, data_scope").
+		Scan(&roles); err != nil {
+		return false, err
+	}
+	for _, r := range roles {
+		if r.DataScope == consts.RoleDataAll {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
 func getManageableRole(ctx context.Context, roleId uint64) (*entity.AdminRole, error) {
 	var role *entity.AdminRole
 	if err := dao.AdminRole.Ctx(ctx).Where("id", roleId).Scan(&role); err != nil {
@@ -415,6 +444,10 @@ func getManageableRole(ctx context.Context, roleId uint64) (*entity.AdminRole, e
 	}
 	if role == nil {
 		return nil, gerror.NewCode(consts.CodeDataNotFound, "角色不存在")
+	}
+	// 超级管理员角色始终不可被非超管管理
+	if consts.IsSuperRole(role.Key) {
+		return nil, gerror.NewCode(consts.CodeNoPermission, "无权管理该角色")
 	}
 
 	currentRoleIds, isSuper, err := getCurrentDirectRoleIds(ctx)
@@ -424,33 +457,42 @@ func getManageableRole(ctx context.Context, roleId uint64) (*entity.AdminRole, e
 	if isSuper {
 		return role, nil
 	}
-	if consts.IsSuperRole(role.Key) || uint64In(role.Id, currentRoleIds) {
+	// 自身角色不可管理（防止误删自身角色导致失去权限）
+	if uint64In(role.Id, currentRoleIds) {
 		return nil, gerror.NewCode(consts.CodeNoPermission, "无权管理该角色")
 	}
-	for _, currentRoleId := range currentRoleIds {
-		if roleTreeContains(role.Tree, currentRoleId) {
-			return role, nil
-		}
+
+	manageableIds, _, err := getManageableRoleIds(ctx)
+	if err != nil {
+		return nil, err
 	}
-	return nil, gerror.NewCode(consts.CodeNoPermission, "无权管理该角色")
+	if !uint64In(roleId, manageableIds) {
+		return nil, gerror.NewCode(consts.CodeNoPermission, "无权管理该角色")
+	}
+	return role, nil
 }
 
 func ensureCanCreateRoleUnder(ctx context.Context, pid uint) error {
+	currentRoleIds, isSuper, err := getCurrentDirectRoleIds(ctx)
+	if err != nil {
+		return err
+	}
+	if isSuper {
+		return nil
+	}
+
 	if pid == 0 {
-		_, isSuper, err := getCurrentDirectRoleIds(ctx)
+		// 拥有"全部数据权限"的角色允许创建根角色，否则仅超管可建
+		hasAllScope, err := currentRolesHaveAllScope(ctx, currentRoleIds)
 		if err != nil {
 			return err
 		}
-		if isSuper {
+		if hasAllScope {
 			return nil
 		}
 		return gerror.NewCode(consts.CodeNoPermission, "无权创建根角色")
 	}
 
-	currentRoleIds, isSuper, err := getCurrentDirectRoleIds(ctx)
-	if err != nil || isSuper {
-		return err
-	}
 	parentId := uint64(pid)
 	if uint64In(parentId, currentRoleIds) {
 		return nil

@@ -77,12 +77,12 @@
               </ElButton>
             </div>
 
-            <div class="mt-5 text-sm text-gray-600">
+<!--            <div class="mt-5 text-sm text-gray-600">
               <span>{{ $t('login.noAccount') }}</span>
               <RouterLink class="text-theme" :to="{ name: 'Register' }">{{
                 $t('login.register')
               }}</RouterLink>
-            </div>
+            </div>-->
           </ElForm>
         </div>
       </div>
