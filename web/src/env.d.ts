@@ -52,3 +52,9 @@ declare module 'qrcode.vue' {
 
 // 全局变量声明
 declare const __APP_VERSION__: string // 版本号
+
+// Markdown 原文导入（Vite ?raw）
+declare module '*.md?raw' {
+  const content: string
+  export default content
+}
