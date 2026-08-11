@@ -99,13 +99,23 @@
             <ElDescriptionsItem label="话补">{{ detail.subsidyAmount ?? '-' }}</ElDescriptionsItem>
             <ElDescriptionsItem label="是否纯新增">{{ detail.isNew ?? '-' }}</ElDescriptionsItem>
             <ElDescriptionsItem label="附件">
-              <a
-                v-if="detail.attachmentId"
-                :href="detail.attachmentId"
-                target="_blank"
-                style="color: var(--el-color-primary)"
-                >{{ detail.attachmentId }}</a
-              >
+              <div v-if="attachmentList.length" class="attachment-list">
+                <template v-for="(url, idx) in attachmentList" :key="idx">
+                  <ElImage
+                    v-if="isImage(url)"
+                    :src="url"
+                    :preview-src-list="imageList"
+                    :initial-index="imageList.indexOf(url)"
+                    fit="cover"
+                    preview-teleported
+                    class="attachment-thumb"
+                  />
+                  <a v-else :href="url" target="_blank" class="attachment-file">
+                    <ArtSvgIcon :icon="getFileTypeIcon(url)" class="text-xl" />
+                    <span class="attachment-ext">{{ getExt(url) }}</span>
+                  </a>
+                </template>
+              </div>
               <span v-else>-</span>
             </ElDescriptionsItem>
           </ElDescriptions>
@@ -132,7 +142,9 @@
                 { '0': '未完工', '1': '已完工' }[String(detail.isCompleted)] || detail.isCompleted
               }}</ElTag>
             </ElDescriptionsItem>
-            <ElDescriptionsItem label="备注" :span="3">{{ detail.remark ?? '-' }}</ElDescriptionsItem>
+            <ElDescriptionsItem label="备注" :span="3">{{
+              detail.remark ?? '-'
+            }}</ElDescriptionsItem>
           </ElDescriptions>
         </StepSection>
 
@@ -168,6 +180,38 @@
     router.back()
   }
 
+  /** 附件 URL 列表（兼容逗号分隔的多个附件） */
+  const attachmentList = computed<string[]>(() => {
+    const raw = detail.value?.attachmentId
+    if (!raw) return []
+    return String(raw)
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean)
+  })
+
+  /** 图片类型的附件 URL 列表（供 ElImage 预览） */
+  const imageList = computed<string[]>(() => attachmentList.value.filter((url) => isImage(url)))
+
+  /** 判断是否为图片（与上传预览组件逻辑一致） */
+  const isImage = (url: string) => /\.(jpg|jpeg|png|gif|webp|bmp|svg)(\?.*)?$/i.test(url)
+
+  /** 获取文件扩展名 */
+  const getExt = (url: string) => url.split('.').pop()?.split('?')[0]?.toUpperCase() || 'FILE'
+
+  /** 根据扩展名返回文件类型图标（与上传预览组件逻辑一致） */
+  const getFileTypeIcon = (url: string) => {
+    if (isImage(url)) return 'ri:image-line'
+    const ext = getExt(url).toLowerCase()
+    if (['pdf'].includes(ext)) return 'ri:file-pdf-2-line'
+    if (['doc', 'docx'].includes(ext)) return 'ri:file-word-line'
+    if (['xls', 'xlsx'].includes(ext)) return 'ri:file-excel-line'
+    if (['zip', 'rar', '7z'].includes(ext)) return 'ri:file-zip-line'
+    if (['mp4', 'avi', 'mov'].includes(ext)) return 'ri:video-line'
+    if (['mp3', 'wav', 'flac'].includes(ext)) return 'ri:music-line'
+    return 'ri:file-line'
+  }
+
   onMounted(async () => {
     const id = Number(route.query.id || route.params.id)
     if (!id) return
@@ -182,10 +226,10 @@
 </script>
 
 <style scoped>
-    :deep(.el-descriptions__label) {
-      width: 140px;
-      font-weight: 600;
-    }
+  :deep(.el-descriptions__label) {
+    width: 140px;
+    font-weight: 600;
+  }
   .overview-descriptions {
     margin-bottom: 16px;
   }
@@ -194,5 +238,36 @@
     :deep(.el-card__body) {
       padding: 16px;
     }
+  }
+  .attachment-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .attachment-thumb {
+    width: 80px;
+    height: 80px;
+    border-radius: 6px;
+    border: 1px solid var(--el-border-color-lighter);
+    display: block;
+    cursor: pointer;
+  }
+  .attachment-file {
+    width: 80px;
+    height: 80px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    border: 1px solid var(--el-border-color-lighter);
+    background: var(--el-fill-color-lighter);
+    color: var(--el-text-color-secondary);
+    cursor: pointer;
+    text-decoration: none;
+  }
+  .attachment-ext {
+    font-size: 10px;
+    margin-top: 2px;
   }
 </style>
