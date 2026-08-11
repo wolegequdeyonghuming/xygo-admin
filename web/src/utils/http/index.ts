@@ -37,9 +37,17 @@ let unauthorizedTimer: NodeJS.Timeout | null = null
 
 /** Token 刷新状态 */
 let isAdminRefreshing = false
-let adminPendingRequests: Array<{ resolve: (value: any) => void; reject: (reason: any) => void; config: any }> = []
+let adminPendingRequests: Array<{
+  resolve: (value: any) => void
+  reject: (reason: any) => void
+  config: any
+}> = []
 let isMemberRefreshing = false
-let memberPendingRequests: Array<{ resolve: (value: any) => void; reject: (reason: any) => void; config: any }> = []
+let memberPendingRequests: Array<{
+  resolve: (value: any) => void
+  reject: (reason: any) => void
+  config: any
+}> = []
 
 /** 扩展 AxiosRequestConfig */
 interface ExtendedAxiosRequestConfig extends AxiosRequestConfig {
@@ -115,6 +123,8 @@ axiosInstance.interceptors.request.use(
 /** 响应拦截器 */
 axiosInstance.interceptors.response.use(
   async (response: AxiosResponse<BaseResponse>) => {
+    // 文件流（blob）响应不按 JSON 包装解析，直接返回
+    if (response.config.responseType === 'blob') return response
     const { code, msg, message } = response.data as any
     const errorMsg = msg || message
     const url = response.config.url || ''
@@ -135,7 +145,10 @@ axiosInstance.interceptors.response.use(
     const url = error.config?.url || ''
     const isMember = isMemberRequest(url)
 
-    if ((error.response?.status === 401 || error.response?.status === ApiStatus.unauthorized) && !isRefreshRequest(error.config)) {
+    if (
+      (error.response?.status === 401 || error.response?.status === ApiStatus.unauthorized) &&
+      !isRefreshRequest(error.config)
+    ) {
       const result = await tryTokenRefresh(error.config, isMember)
       if (result) return result
       handleUnauthorizedError(undefined, isMember)
@@ -162,22 +175,18 @@ function handleKickedOutError(message?: string, isMember: boolean = false): neve
 
     // 使用 MessageBox 弹窗提示（比普通过期更醒目）
     import('element-plus').then(({ ElMessageBox }) => {
-      ElMessageBox.alert(
-        message || '您的账号已在其他设备登录，当前会话已失效。',
-        '账号异地登录',
-        {
-          confirmButtonText: '重新登录',
-          type: 'warning',
-          callback: () => {
-            if (isMember) {
-              logOutMember()
-            } else {
-              logOut()
-            }
-            resetUnauthorizedError()
+      ElMessageBox.alert(message || '您的账号已在其他设备登录，当前会话已失效。', '账号异地登录', {
+        confirmButtonText: '重新登录',
+        type: 'warning',
+        callback: () => {
+          if (isMember) {
+            logOutMember()
+          } else {
+            logOut()
           }
+          resetUnauthorizedError()
         }
-      )
+      })
     })
 
     unauthorizedTimer = setTimeout(resetUnauthorizedError, UNAUTHORIZED_DEBOUNCE_TIME)
@@ -323,7 +332,8 @@ function logOut() {
     if (router.currentRoute.value.path !== ADMIN_LOGIN_PATH) {
       router.push({
         path: ADMIN_LOGIN_PATH,
-        query: redirectPath && redirectPath !== ADMIN_LOGIN_PATH ? { redirect: redirectPath } : undefined
+        query:
+          redirectPath && redirectPath !== ADMIN_LOGIN_PATH ? { redirect: redirectPath } : undefined
       })
     }
   }, LOGOUT_DELAY)
@@ -336,7 +346,9 @@ function logOutMember() {
   memberLogoutPending = true
   setTimeout(() => {
     useMemberStore().logOut()
-    setTimeout(() => { memberLogoutPending = false }, UNAUTHORIZED_DEBOUNCE_TIME)
+    setTimeout(() => {
+      memberLogoutPending = false
+    }, UNAUTHORIZED_DEBOUNCE_TIME)
   }, LOGOUT_DELAY)
 }
 
@@ -386,6 +398,11 @@ async function request<T = any>(config: ExtendedAxiosRequestConfig): Promise<T> 
 
   try {
     const res = await axiosInstance.request<BaseResponse<T>>(config)
+
+    // 文件流（blob）响应：直接返回 Blob 数据，不做 JSON 解包
+    if (config.responseType === 'blob') {
+      return res.data as T
+    }
 
     // 显示成功消息（兼容msg和message字段）
     const successMsg = (res.data as any).msg || (res.data as any).message

@@ -7,6 +7,9 @@ package service
 
 import (
 	"context"
+
+	"github.com/gogf/gf/v2/net/ghttp"
+
 	adminin "xygo/internal/model/input/orderin"
 )
 
@@ -31,6 +34,8 @@ type (
 		DetailAdd(ctx context.Context, in *adminin.BizOrderDetailAddInp) error
 		// DetailDelete 删除订单详细情况：只能删除自己录入的（逻辑删除）
 		DetailDelete(ctx context.Context, id int64) error
+		// Export 订单导出（使用模板填充，结果写入响应流）
+		Export(ctx context.Context, r *ghttp.Request, in *adminin.BizOrderListInp) error
 	}
 )
 

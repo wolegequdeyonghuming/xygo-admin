@@ -84,3 +84,11 @@ type BizOrderDetailDeleteReq struct {
 }
 
 type BizOrderDetailDeleteRes struct{}
+
+// BizOrderExportReq 订单导出请求（复用列表筛选条件）
+type BizOrderExportReq struct {
+	g.Meta `path:"/admin/biz-order/export" method:"get" tags:"BizOrder" summary:"订单导出"`
+	adminin.BizOrderListInp
+}
+
+type BizOrderExportRes struct{}

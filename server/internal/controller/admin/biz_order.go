@@ -3,6 +3,8 @@ package admin
 import (
 	"context"
 
+	"github.com/gogf/gf/v2/frame/g"
+
 	api "xygo/api/order"
 	"xygo/internal/service"
 )
@@ -71,4 +73,10 @@ func (c *ControllerV1) BizOrderDetailAdd(ctx context.Context, req *api.BizOrderD
 func (c *ControllerV1) BizOrderDetailDelete(ctx context.Context, req *api.BizOrderDetailDeleteReq) (res *api.BizOrderDetailDeleteRes, err error) {
 	err = service.BizOrder().DetailDelete(ctx, req.Id)
 	return &api.BizOrderDetailDeleteRes{}, err
+}
+
+// BizOrderExport 订单导出（使用模板填充）
+func (c *ControllerV1) BizOrderExport(ctx context.Context, req *api.BizOrderExportReq) (res *api.BizOrderExportRes, err error) {
+	err = service.BizOrder().Export(ctx, g.RequestFromCtx(ctx), &req.BizOrderListInp)
+	return &api.BizOrderExportRes{}, err
 }

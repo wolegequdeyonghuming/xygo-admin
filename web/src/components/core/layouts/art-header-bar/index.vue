@@ -27,7 +27,7 @@
         <!-- 系统信息  -->
         <div class="flex-c c-p" @click="toHome" v-if="isTopMenu">
           <ArtLogo class="pl-4.5" />
-          <p v-if="width >= 1400" class="my-0 mx-2 ml-2 text-lg">{{ systemName }}</p>  
+          <p v-if="width >= 1400" class="my-0 mx-2 ml-2 text-lg">{{ systemName }}</p>
         </div>
 
         <ArtLogo
@@ -53,9 +53,9 @@
         />
 
         <!-- 快速入口 -->
-        <ArtFastEnter v-if="shouldShowFastEnter && width >= headerBarFastEnterMinWidth">
+        <!--        <ArtFastEnter v-if="shouldShowFastEnter && width >= headerBarFastEnterMinWidth">
           <ArtIconButton icon="ri:function-line" class="ml-3" />
-        </ArtFastEnter>
+        </ArtFastEnter>-->
 
         <!-- 面包屑 -->
         <ArtBreadcrumb
@@ -98,15 +98,11 @@
 
         <!-- 门户首页入口 -->
         <ElTooltip content="门户首页" placement="bottom" :show-after="300">
-          <ArtIconButton
-            icon="ri:global-line"
-            class="portal-btn"
-            @click="openPortal"
-          />
+          <ArtIconButton icon="ri:global-line" class="portal-btn" @click="openPortal" />
         </ElTooltip>
 
         <!-- 国际化按钮 -->
-        <ElDropdown
+        <!--        <ElDropdown
           @command="changeLanguage"
           popper-class="langDropDownStyle"
           v-if="shouldShowLanguage"
@@ -125,7 +121,7 @@
               </div>
             </ElDropdownMenu>
           </template>
-        </ElDropdown>
+        </ElDropdown>-->
 
         <!-- 通知按钮 -->
         <ArtIconButton
@@ -134,7 +130,10 @@
           class="notice-button relative"
           @click="visibleNotice"
         >
-          <div v-if="notificationUnread > 0" class="absolute -top-0.5 -right-0.5 min-w-4 h-4 px-1 text-[10px] leading-4 text-center text-white !bg-danger rounded-full">
+          <div
+            v-if="notificationUnread > 0"
+            class="absolute -top-0.5 -right-0.5 min-w-4 h-4 px-1 text-[10px] leading-4 text-center text-white !bg-danger rounded-full"
+          >
             {{ notificationUnread > 99 ? '99+' : notificationUnread }}
           </div>
         </ArtIconButton>
@@ -146,10 +145,16 @@
           class="chat-button relative"
           @click="openChat"
         >
-          <div v-if="chatUnread > 0" class="absolute -top-0.5 -right-0.5 min-w-4 h-4 px-1 text-[10px] leading-4 text-center text-white !bg-danger rounded-full">
+          <div
+            v-if="chatUnread > 0"
+            class="absolute -top-0.5 -right-0.5 min-w-4 h-4 px-1 text-[10px] leading-4 text-center text-white !bg-danger rounded-full"
+          >
             {{ chatUnread > 99 ? '99+' : chatUnread }}
           </div>
-          <div v-else class="breathing-dot absolute top-2 right-2 size-1.5 !bg-success rounded-full"></div>
+          <div
+            v-else
+            class="breathing-dot absolute top-2 right-2 size-1.5 !bg-success rounded-full"
+          ></div>
         </ArtIconButton>
 
         <!-- 设置按钮 -->
@@ -223,7 +228,7 @@
   const userStore = useUserStore()
   const menuStore = useMenuStore()
   const siteStore = useSiteStore()
-  
+
   // 系统名称
   const systemName = computed(() => siteStore.getSiteName() || AppConfig.systemInfo.name)
 
@@ -298,7 +303,7 @@
   const visibleMenu = (): void => {
     settingStore.setMenuOpen(!menuOpen.value)
   }
- 
+
   const { homePath } = useCommon()
   const { refresh } = useCommon()
 

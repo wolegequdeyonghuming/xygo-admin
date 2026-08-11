@@ -75,9 +75,9 @@ export function fetchBizOrderDelete(id: number) {
   })
 }
 
-/** 导出 */
-export function fetchBizOrderExport(params?: any) {
-  return adminRequest.get<any>({
+/** 导出（返回 Excel 文件 Blob） */
+export function fetchBizOrderExport(params?: any): Promise<Blob> {
+  return adminRequest.get<Blob>({
     url: '/biz-order/export',
     params,
     responseType: 'blob'

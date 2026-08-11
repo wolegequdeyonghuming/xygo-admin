@@ -60,7 +60,8 @@
     fetchBizOrderEdit,
     fetchBizOrderDelete,
     fetchBizOrderStepEdit,
-    fetchBizOrderStepNext
+    fetchBizOrderStepNext,
+    fetchBizOrderExport
   } from '@/api/order/biz-order'
   import BizOrderSearch from './modules/biz-order-search.vue'
   import BizOrderDialog from './modules/biz-order-dialog.vue'
@@ -72,12 +73,11 @@
   const dictStore = useDictStore()
   import { useRouter } from 'vue-router'
   import { DialogType } from '@/types'
-  import { ArrowRight, Edit } from '@element-plus/icons-vue'
+  import { Edit } from '@element-plus/icons-vue'
 
   defineOptions({ name: 'BizOrder' })
   const { hasAuth } = useAuth()
-  const { anyRoleCanStep, canStepFromStatus, canOperateOrder, canDeleteOrder, nextStepForOrder } =
-    useOrderPerm()
+  const { anyRoleCanStep, canStepFromStatus, canOperateOrder, canDeleteOrder } = useOrderPerm()
   const router = useRouter()
   const dialogType = ref<DialogType>('add')
   const dialogVisible = ref(false)
@@ -487,8 +487,21 @@
     }
   }
 
-  const handleExport = () => {
-    ElMessage.info('导出功能开发中')
+  /** 导出：按当前搜索条件导出全部数据 */
+  const handleExport = async () => {
+    try {
+      const blob = await fetchBizOrderExport(searchParams)
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `移动业务表格-${new Date().toISOString().slice(0, 19).replace(/[:T]/g, '')}.xlsx`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+    } catch (e) {
+      console.error(e)
+    }
   }
 
   const handleDialogSubmit = async (formData: any) => {

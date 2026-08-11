@@ -2,9 +2,16 @@ package bizorder
 
 import (
 	"context"
+	"fmt"
+	"path/filepath"
+	"strconv"
+	"time"
+
 	"github.com/gogf/gf/v2/errors/gerror"
 	"github.com/gogf/gf/v2/frame/g"
+	"github.com/gogf/gf/v2/net/ghttp"
 	"github.com/gogf/gf/v2/os/gtime"
+	"github.com/xuri/excelize/v2"
 
 	"xygo/internal/consts"
 	"xygo/internal/dao"
@@ -413,4 +420,174 @@ func (s *sBizOrder) DetailDelete(ctx context.Context, id int64) error {
 	}
 	_, err = dao.BizOrderDetails.Ctx(ctx).Where("id", id).Data(g.Map{"is_deleted": 1}).Update()
 	return err
+}
+
+// Export 订单导出：使用模板文件填充并返回 Excel 文件流。
+// 导出当前筛选条件下的全部数据（不限分页），"详细情况"列取该订单最新一条详细情况。
+func (s *sBizOrder) Export(ctx context.Context, r *ghttp.Request, in *adminin.BizOrderListInp) error {
+	// 查询全部符合条件的订单（复用列表筛选 + 数据可见性，不分页）
+	var list []adminin.BizOrderListItem
+	model := dao.BizOrder.Ctx(ctx).As("t")
+	model = model.LeftJoin("xy_admin_user telemarketer", "telemarketer.id = t.telemarketer_id")
+	model = model.LeftJoin("xy_admin_user agent", "agent.id = t.agent_id")
+	model = model.Where("t.is_deleted", 0)
+	model = applyScope(ctx, model, currentRole(ctx))
+	if in.OrderStatus != nil {
+		model = model.Where("t.order_status", *in.OrderStatus)
+	}
+	if in.ScheduleDateStart != "" && in.ScheduleDateEnd != "" {
+		model = model.WhereBetween("t.schedule_date", in.ScheduleDateStart, in.ScheduleDateEnd)
+	}
+	if in.VisitDateStart != "" && in.VisitDateEnd != "" {
+		model = model.WhereBetween("t.visit_date", in.VisitDateStart, in.VisitDateEnd)
+	}
+	if in.CustomerName != "" {
+		model = model.WhereLike("t.customer_name", "%"+in.CustomerName+"%")
+	}
+	if in.Area != nil {
+		model = model.Where("t.area", *in.Area)
+	}
+	if in.InstallAddress != "" {
+		model = model.WhereLike("t.install_address", "%"+in.InstallAddress+"%")
+	}
+	if in.ContactPhone != "" {
+		model = model.WhereLike("t.contact_phone", "%"+in.ContactPhone+"%")
+	}
+	if in.BusinessType != "" {
+		model = model.WhereLike("t.business_type", "%"+in.BusinessType+"%")
+	}
+	model = model.Fields("t.*, " +
+		"CASE WHEN telemarketer.real_name != '' THEN telemarketer.real_name ELSE telemarketer.nickname END as telemarketer_real_name, " +
+		"CASE WHEN agent.real_name != '' THEN agent.real_name ELSE agent.nickname END as agent_real_name")
+	err := model.OrderDesc("t.id").Scan(&list)
+	if err != nil {
+		return err
+	}
+
+	// 区域字典：value → label
+	areaLabel := make(map[string]string)
+	if dictItems, err := service.Dict().GetByType(ctx, "area"); err == nil {
+		for _, item := range dictItems {
+			areaLabel[item.Value] = item.Label
+		}
+	}
+
+	// 打开模板
+	f, err := excelize.OpenFile(filepath.Join("resource", "template", "download", "移动业务表格.xlsx"))
+	if err != nil {
+		return gerror.Wrap(err, "打开导出模板失败")
+	}
+	defer f.Close()
+
+	sheet := f.GetSheetName(0)
+	// 逐行填充，从第 2 行开始（第 1 行为表头）
+	for i, order := range list {
+		row := i + 2
+		// 数据超出模板预置行数时追加新行
+		if row > 279 {
+			if err := f.DuplicateRow(sheet, 279); err != nil {
+				return gerror.Wrap(err, "追加导出行失败")
+			}
+		}
+		s.fillExportRow(ctx, f, sheet, row, &order, areaLabel)
+	}
+
+	// 写入响应
+	fileName := fmt.Sprintf("移动业务表格-%s.xlsx", time.Now().Format("20060102150405"))
+	buf, err := f.WriteToBuffer()
+	if err != nil {
+		return gerror.Wrap(err, "生成导出文件失败")
+	}
+	r.Response.Header().Set("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+	r.Response.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, fileName))
+	r.Response.Header().Set("Content-Length", strconv.Itoa(buf.Len()))
+	r.Response.Write(buf.Bytes())
+	return nil
+}
+
+// fillExportRow 将单个订单填入模板指定行
+func (s *sBizOrder) fillExportRow(ctx context.Context, f *excelize.File, sheet string, row int, order *adminin.BizOrderListItem, areaLabel map[string]string) {
+	scheduleDate := ""
+	if order.ScheduleDate != nil {
+		scheduleDate = order.ScheduleDate.Format("2006-01-02")
+	}
+	area := ""
+	if order.Area != nil {
+		area = areaLabel[strconv.Itoa(*order.Area)]
+	}
+	rowStr := strconv.Itoa(row)
+	values := map[string]interface{}{
+		"A":  order.IsNew,                       // 是否纯新增
+		"B":  scheduleDate,                      // 排单日期
+		"C":  order.CustomerName,                // 姓名
+		"D":  order.AvailableTimeDesc,           // 时间
+		"E":  area,                              // 区域
+		"F":  order.InstallAddress,              // 安装地址
+		"G":  order.ContactPhone,                // 联系电话
+		"H":  order.BusinessType,                // 预约业务
+		"I":  order.ExpiryDate,                  // 到期
+		"J":  order.PrimaryTelNo,                // 主卡号码
+		"L":  order.TelemarketerRealName,        // 话务员
+		"M":  order.AgentRealName,               // 收单员
+		"N":  order.AppointmentDesc,             // 收单预约情况
+		"O":  order.FollowUpDesc,                // 话务二次回访情况
+		"P":  order.DealtBusinessType,           // 成交业务
+		"Q":  order.PortingStatus,               // 携转情况
+		"R":  order.CustomerRealName,            // 客户实际姓名
+		"S":  stringVal(order.CustomerIdNumber), // 身份证号码
+		"T":  float64Val(order.PaidAmount),      // 实缴额度
+		"U":  intVal(order.IsRuralOrder),        // 是否乡下单
+		"V":  order.NewPhoneNo,                  // 新开号码
+		"W":  order.DeviceSerial,                // 终端串码
+		"X":  order.BroadbandAccount,            // 宽带账号
+		"Y":  intVal(order.IsCompleted),         // 是否完工
+		"Z":  float64Val(order.SubsidyAmount),   // 话补
+		"AA": order.AgencyNo,                    // 工号
+		"AB": order.Remark,                      // 备注
+	}
+	// K 列「详细情况」取该订单最新一条
+	values["K"] = s.latestDetail(ctx, order.Id)
+
+	for col, val := range values {
+		_ = f.SetCellValue(sheet, col+rowStr, val)
+	}
+}
+
+// latestDetail 查询订单最新一条详细情况内容（created_at 降序取首条）
+func (s *sBizOrder) latestDetail(ctx context.Context, orderId int64) string {
+	var detail entity.BizOrderDetails
+	err := dao.BizOrderDetails.Ctx(ctx).
+		Where("order_id", orderId).
+		Where("is_deleted", 0).
+		OrderDesc("created_at").
+		Limit(1).
+		Scan(&detail)
+	if err != nil || detail.Id == 0 {
+		return ""
+	}
+	return detail.Content
+}
+
+// stringVal 指针字符串取值兜底
+func stringVal(p *string) string {
+	if p == nil {
+		return ""
+	}
+	return *p
+}
+
+// intVal 指针 int 取值兜底
+func intVal(p *int) int {
+	if p == nil {
+		return 0
+	}
+	return *p
+}
+
+// float64Val 指针 float64 取值兜底
+func float64Val(p *float64) float64 {
+	if p == nil {
+		return 0
+	}
+	return *p
 }
