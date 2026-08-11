@@ -22,6 +22,7 @@ type BizOrderDao struct {
 // BizOrderColumns defines and stores column names for the table xy_biz_order.
 type BizOrderColumns struct {
 	Id                string // 主键
+	OrderNo           string //
 	ScheduleDate      string // 排单日期
 	VisitDate         string // 上门日期
 	CustomerName      string // 客户姓名
@@ -62,6 +63,7 @@ type BizOrderColumns struct {
 // bizOrderColumns holds the columns for the table xy_biz_order.
 var bizOrderColumns = BizOrderColumns{
 	Id:                "id",
+	OrderNo:           "order_no",
 	ScheduleDate:      "schedule_date",
 	VisitDate:         "visit_date",
 	CustomerName:      "customer_name",

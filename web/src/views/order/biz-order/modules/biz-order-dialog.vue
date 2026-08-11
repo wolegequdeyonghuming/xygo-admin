@@ -10,20 +10,46 @@
     <ElForm ref="formRef" :model="formData" :rules="rules" label-width="140px">
       <ElRow :gutter="16">
         <ElCol :span="12">
+          <ElFormItem label="订单编号" prop="orderNo">
+            <ElInput
+              v-model="formData.orderNo"
+              disabled
+              :placeholder="type === 'add' ? '自动创建订单编号' : ''"
+            />
+          </ElFormItem>
+        </ElCol>
+        <ElCol :span="12">
           <ElFormItem label="订单状态" prop="orderStatus">
             <ElSelect v-model="formData.orderStatus" placeholder="请选择订单状态" clearable>
-              <ElOption v-for="opt in dictStore.getDictData('order_status')" :key="opt.value" :label="opt.label" :value="Number(opt.value)" />
+              <ElOption
+                v-for="opt in dictStore.getDictData('order_status')"
+                :key="opt.value"
+                :label="opt.label"
+                :value="Number(opt.value)"
+              />
             </ElSelect>
           </ElFormItem>
         </ElCol>
         <ElCol :span="12">
           <ElFormItem label="排单日期" prop="scheduleDate">
-            <ElDatePicker v-model="formData.scheduleDate" type="date" value-format="YYYY-MM-DD" placeholder="请选择排单日期" style="width: 100%" />
+            <ElDatePicker
+              v-model="formData.scheduleDate"
+              type="date"
+              value-format="YYYY-MM-DD"
+              placeholder="请选择排单日期"
+              style="width: 100%"
+            />
           </ElFormItem>
         </ElCol>
         <ElCol :span="12">
           <ElFormItem label="上门日期" prop="visitDate">
-            <ElDatePicker v-model="formData.visitDate" type="date" value-format="YYYY-MM-DD" placeholder="请选择上门日期" style="width: 100%" />
+            <ElDatePicker
+              v-model="formData.visitDate"
+              type="date"
+              value-format="YYYY-MM-DD"
+              placeholder="请选择上门日期"
+              style="width: 100%"
+            />
           </ElFormItem>
         </ElCol>
         <ElCol :span="12">
@@ -39,7 +65,12 @@
         <ElCol :span="12">
           <ElFormItem label="区县" prop="area">
             <ElSelect v-model="formData.area" placeholder="请选择区县" clearable>
-              <ElOption v-for="opt in dictStore.getDictData('area')" :key="opt.value" :label="opt.label" :value="Number(opt.value)" />
+              <ElOption
+                v-for="opt in dictStore.getDictData('area')"
+                :key="opt.value"
+                :label="opt.label"
+                :value="Number(opt.value)"
+              />
             </ElSelect>
           </ElFormItem>
         </ElCol>
@@ -110,12 +141,20 @@
         </ElCol>
         <ElCol :span="12">
           <ElFormItem label="实缴额度" prop="paidAmount">
-            <ElInputNumber v-model="formData.paidAmount" controls-position="right" style="width: 100%" />
+            <ElInputNumber
+              v-model="formData.paidAmount"
+              controls-position="right"
+              style="width: 100%"
+            />
           </ElFormItem>
         </ElCol>
         <ElCol :span="12">
           <ElFormItem label="话补" prop="subsidyAmount">
-            <ElInputNumber v-model="formData.subsidyAmount" controls-position="right" style="width: 100%" />
+            <ElInputNumber
+              v-model="formData.subsidyAmount"
+              controls-position="right"
+              style="width: 100%"
+            />
           </ElFormItem>
         </ElCol>
         <ElCol :span="12">
@@ -161,7 +200,12 @@
         </ElCol>
         <ElCol :span="24">
           <ElFormItem label="详细情况" prop="details">
-            <ElInput v-model="formData.details" type="textarea" :rows="2" placeholder="请输入详细情况" />
+            <ElInput
+              v-model="formData.details"
+              type="textarea"
+              :rows="2"
+              placeholder="请输入详细情况"
+            />
           </ElFormItem>
         </ElCol>
         <ElCol :span="24">
@@ -215,6 +259,7 @@
 
   const defaultForm = (): Record<string, any> => ({
     id: 0,
+    orderNo: '',
     orderStatus: undefined,
     scheduleDate: '',
     visitDate: '',
@@ -245,14 +290,14 @@
     agencyNo: '',
     isNew: '',
     remark: '',
-    attachmentId: '',
+    attachmentId: ''
   })
 
   const formData = reactive(defaultForm())
 
   const rules = reactive<FormRules>({
     customerName: [{ required: true, message: '客户姓名不能为空', trigger: 'blur' }],
-    contactPhone: [{ required: true, message: '联系电话不能为空', trigger: 'blur' }],
+    contactPhone: [{ required: true, message: '联系电话不能为空', trigger: 'blur' }]
   })
 
   // 把完整详情数据填充进表单（含附件、日期格式化）
@@ -267,23 +312,26 @@
     Object.assign(formData, merged)
   }
 
-  watch(() => props.visible, async (val) => {
-    if (val) {
-      // 预加载字典数据
-      await dictStore.preload(['area', 'order_status'])
-      if (props.type === 'edit' && props.editData?.id) {
-        // 拉取完整详情，确保附件/日期/关联信息完整回显
-        try {
-          const detail = await fetchBizOrderView(props.editData.id)
-          assignFormData(detail)
-        } catch {
+  watch(
+    () => props.visible,
+    async (val) => {
+      if (val) {
+        // 预加载字典数据
+        await dictStore.preload(['area', 'order_status'])
+        if (props.type === 'edit' && props.editData?.id) {
+          // 拉取完整详情，确保附件/日期/关联信息完整回显
+          try {
+            const detail = await fetchBizOrderView(props.editData.id)
+            assignFormData(detail)
+          } catch {
+            Object.assign(formData, defaultForm())
+          }
+        } else {
           Object.assign(formData, defaultForm())
         }
-      } else {
-        Object.assign(formData, defaultForm())
       }
     }
-  })
+  )
 
   const handleSubmit = async () => {
     if (!formRef.value) return

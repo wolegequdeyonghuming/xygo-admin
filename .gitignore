@@ -15,3 +15,4 @@ server/addons/*/
 server/addons/.backup/
 server/addons/*.zip
 web/src/addons/tenant/
+deploy/web/

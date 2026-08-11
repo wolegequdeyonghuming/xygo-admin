@@ -11,6 +11,7 @@ import (
 // BizOrder is the golang structure for table biz_order.
 type BizOrder struct {
 	Id                int64       `json:"id"                orm:"id"                  description:"主键"`       // 主键
+	OrderNo           string      `json:"orderNo"           orm:"order_no"            description:""`         //
 	ScheduleDate      *gtime.Time `json:"scheduleDate"      orm:"schedule_date"       description:"排单日期"`     // 排单日期
 	VisitDate         *gtime.Time `json:"visitDate"         orm:"visit_date"          description:"上门日期"`     // 上门日期
 	CustomerName      string      `json:"customerName"      orm:"customer_name"       description:"客户姓名"`     // 客户姓名

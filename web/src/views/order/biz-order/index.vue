@@ -152,6 +152,12 @@
           formatter: (row: any) => row.customerName ?? '-'
         },
         {
+          prop: 'orderNo',
+          label: '订单编号',
+          minWidth: 150,
+          formatter: (row: any) => row.orderNo ?? '-'
+        },
+        {
           prop: 'availableTimeDesc',
           label: '可联系时间',
           minWidth: 120,

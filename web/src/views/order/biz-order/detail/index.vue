@@ -28,6 +28,9 @@
           <ElDescriptionsItem label="收单员" :span="2">{{
             detail.agent_real_name ?? '-'
           }}</ElDescriptionsItem>
+          <ElDescriptionsItem label="订单编号" :span="3">{{
+            detail.orderNo ?? '-'
+          }}</ElDescriptionsItem>
           <ElDescriptionsItem label="创建时间" :span="3">{{
             formatTimestamp(detail.createdAt)
           }}</ElDescriptionsItem>

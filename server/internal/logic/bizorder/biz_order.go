@@ -160,22 +160,35 @@ func (s *sBizOrder) Edit(ctx context.Context, in *adminin.BizOrderEditInp) error
 		"attachment_id":       in.AttachmentId,
 	}
 
-	// 非自增主键：为空时生成主键值，并加入 INSERT 数据
-	if in.Id == 0 {
+	// 判断新增/更新：主键为空则为新增（先判定，再生成主键，避免判定被覆盖）
+	isNew := in.Id == 0
+	if isNew {
+		// 非自增主键：为空时生成时间戳主键，并加入 INSERT 数据
 		in.Id = gtime.TimestampNano()
 	}
 	data["id"] = in.Id
 
-	// 判断新增/更新：自增主键用 0 判断，非自增（UUID/时间戳）用空值判断
-	isNew := false
-	isNew = in.Id == 0
 	if isNew {
-		// 新增
-		_, err := dao.BizOrder.Ctx(ctx).Data(data).Insert()
-		return err
+		// 新增：生成订单编号（不可修改）、记录创建人；遇唯一索引撞号自动重试重新生成
+		data["created_by"] = currentUserId(ctx)
+		for attempt := 0; attempt < 5; attempt++ {
+			orderNo, genErr := genBizOrderNo(ctx)
+			if genErr != nil {
+				return genErr
+			}
+			data["order_no"] = orderNo
+			_, err := dao.BizOrder.Ctx(ctx).Data(data).Insert()
+			if err == nil {
+				return nil
+			}
+			if !isDuplicateEntryErr(err) {
+				return err
+			}
+		}
+		return gerror.New("创建订单失败：订单编号生成冲突")
 	}
 
-	// 更新（updated_at 由 GoFrame 自动维护）
+	// 更新（updated_at 由 GoFrame 自动维护；order_no 不可修改）
 	_, err := dao.BizOrder.Ctx(ctx).Where("id", in.Id).Data(data).Update()
 	return err
 }
@@ -210,7 +223,21 @@ func (s *sBizOrder) StepEdit(ctx context.Context, in *adminin.BizOrderStepEditIn
 		for k, v := range recordData {
 			data[k] = v
 		}
-		_, err = dao.BizOrder.Ctx(ctx).Data(data).Insert()
+		// 生成订单编号并插入（遇唯一索引撞号自动重试重新生成）
+		for attempt := 0; attempt < 5; attempt++ {
+			orderNo, genErr := genBizOrderNo(ctx)
+			if genErr != nil {
+				return 0, genErr
+			}
+			data["order_no"] = orderNo
+			_, err = dao.BizOrder.Ctx(ctx).Data(data).Insert()
+			if err == nil {
+				break
+			}
+			if !isDuplicateEntryErr(err) {
+				return 0, err
+			}
+		}
 		if err != nil {
 			return 0, err
 		}

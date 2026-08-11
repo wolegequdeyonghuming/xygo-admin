@@ -13,6 +13,7 @@ import (
 type BizOrder struct {
 	g.Meta            `orm:"table:xy_biz_order, do:true"`
 	Id                any         // 主键
+	OrderNo           any         //
 	ScheduleDate      *gtime.Time // 排单日期
 	VisitDate         *gtime.Time // 上门日期
 	CustomerName      any         // 客户姓名
