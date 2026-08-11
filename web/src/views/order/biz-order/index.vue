@@ -132,14 +132,14 @@
         {
           prop: 'scheduleDate',
           label: '排单日期',
-          width: 180,
-          formatter: (row: any) => formatTimestamp(row.scheduleDate)
+          width: 120,
+          formatter: (row: any) => formatTimestamp(row.scheduleDate, 'date')
         },
         {
           prop: 'visitDate',
           label: '上门日期',
-          width: 180,
-          formatter: (row: any) => formatTimestamp(row.visitDate)
+          width: 120,
+          formatter: (row: any) => formatTimestamp(row.visitDate, 'date')
         },
         {
           prop: 'customerName',
@@ -150,7 +150,7 @@
         {
           prop: 'availableTimeDesc',
           label: '可联系时间',
-          minWidth: 160,
+          minWidth: 120,
           formatter: (row: any) => row.availableTimeDesc ?? '-'
         },
         {
@@ -171,6 +171,18 @@
           label: '联系电话',
           minWidth: 120,
           formatter: (row: any) => row.contactPhone ?? '-'
+        },
+        {
+          prop: 'telemarketer_real_name',
+          label: '话务员',
+          minWidth: 120,
+          formatter: (row: any) => row.telemarketer_real_name ?? '-'
+        },
+        {
+          prop: 'agent_real_name',
+          label: '收单员',
+          minWidth: 120,
+          formatter: (row: any) => row.agent_real_name ?? '-'
         },
         {
           prop: 'businessType',
@@ -195,18 +207,6 @@
           label: '详细情况',
           minWidth: 120,
           formatter: (row: any) => row.details ?? '-'
-        },
-        {
-          prop: 'telemarketer_real_name',
-          label: '话务员',
-          minWidth: 120,
-          formatter: (row: any) => row.telemarketer_real_name ?? '-'
-        },
-        {
-          prop: 'agent_real_name',
-          label: '收单员',
-          minWidth: 120,
-          formatter: (row: any) => row.agent_real_name ?? '-'
         },
         {
           prop: 'appointmentDesc',
@@ -328,7 +328,7 @@
         {
           prop: 'operation',
           label: '操作',
-          width: 360,
+          width: 260,
           fixed: 'right',
           formatter: (row: any) => buildOperationButtons(row)
         }
