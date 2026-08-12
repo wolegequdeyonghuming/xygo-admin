@@ -24,6 +24,7 @@ import (
 	_ "xygo/internal/logic/post"
 	_ "xygo/internal/logic/queue"
 	_ "xygo/internal/logic/sms"
+	_ "xygo/internal/logic/staff"
 	_ "xygo/internal/logic/sysconfig"
 	_ "xygo/internal/logic/user"
 	_ "xygo/internal/logic/wm"

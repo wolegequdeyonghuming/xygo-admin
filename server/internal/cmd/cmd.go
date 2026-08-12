@@ -21,13 +21,14 @@ import (
 	"github.com/gogf/gf/v2/os/gfile"
 	"github.com/gogf/gf/v2/os/gres"
 
+	"xygo/internal/addon"
 	"xygo/internal/controller/admin"
 	"xygo/internal/controller/hello"
 	"xygo/internal/controller/member"
 	"xygo/internal/controller/site"
+	"xygo/internal/controller/staff"
 	"xygo/internal/controller/system"
 	"xygo/internal/controller/wm"
-	"xygo/internal/addon"
 	"xygo/internal/library/cache"
 	"xygo/internal/library/monitor"
 	"xygo/internal/library/queue"
@@ -142,32 +143,40 @@ var (
 					site.NewV1(),
 				)
 
-			// 后台管理接口（带鉴权）
-			group.Group("/", func(ag *ghttp.RouterGroup) {
-				ag.Middleware(middleware.AdminAuth)
-				ag.Middleware(middleware.AdminPermission)
-				ag.Middleware(middleware.DemoGuard)
-				ag.Middleware(middleware.OperationLog)
+				// 后台管理接口（带鉴权）
+				group.Group("/", func(ag *ghttp.RouterGroup) {
+					ag.Middleware(middleware.AdminAuth)
+					ag.Middleware(middleware.AdminPermission)
+					ag.Middleware(middleware.DemoGuard)
+					ag.Middleware(middleware.OperationLog)
 					ag.Bind(
 						admin.NewV1(),
 					)
 				})
 
-			// 会员接口（前台用户，使用 Xy-User-Token）
-			group.Group("/member", func(mg *ghttp.RouterGroup) {
-				mg.Middleware(middleware.MemberAuth)
-				mg.Middleware(middleware.DemoGuard)
-				mg.Bind(
-					member.NewV1(),
-				)
-			})
-			// 微信小程序接口（复用 MemberAuth 体系，/wm/auth/login 已在白名单）
-			group.Group("/wm", func(wg *ghttp.RouterGroup) {
-				wg.Middleware(middleware.MemberAuth)
-				wg.Bind(
-					wm.NewV1(),
-				)
-			})
+				// 会员接口（前台用户，使用 Xy-User-Token）
+				group.Group("/member", func(mg *ghttp.RouterGroup) {
+					mg.Middleware(middleware.MemberAuth)
+					mg.Middleware(middleware.DemoGuard)
+					mg.Bind(
+						member.NewV1(),
+					)
+				})
+				// 微信小程序接口（复用 MemberAuth 体系，/wm/auth/login 已在白名单）
+				group.Group("/wm", func(wg *ghttp.RouterGroup) {
+					wg.Middleware(middleware.MemberAuth)
+					wg.Bind(
+						wm.NewV1(),
+					)
+				})
+
+				// 收单小程序接口（后台 admin token + 角色守卫，白名单 /staff/auth/login）
+				group.Group("/staff", func(sg *ghttp.RouterGroup) {
+					sg.Middleware(middleware.StaffAuth)
+					sg.Bind(
+						staff.NewV1(),
+					)
+				})
 			})
 
 			// =============== WebSocket 端点 ===============

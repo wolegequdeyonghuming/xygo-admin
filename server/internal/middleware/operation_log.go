@@ -95,16 +95,26 @@ func OperationLog(r *ghttp.Request) {
 	traceId := gctx.CtxId(r.GetCtx()) // ✨ 提取 TraceId 用于全链路串联
 
 	// 读取请求体（需要在 Next 之前读取，否则可能被消费掉）
+	// multipart 上传的请求体为二进制，无法写入 utf8mb4 列，故不记录
 	var requestBody string
-	body := r.GetBodyString()
-	if body != "" {
-		requestBody = body
+	contentType := r.Header.Get("Content-Type")
+	if strings.HasPrefix(contentType, "multipart/form-data") {
+		requestBody = "[文件上传，不记录请求体]"
 	} else {
-		bodyBytes, _ := io.ReadAll(r.Body)
-		if len(bodyBytes) > 0 {
-			requestBody = string(bodyBytes)
-			r.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
+		body := r.GetBodyString()
+		if body != "" {
+			requestBody = body
+		} else {
+			bodyBytes, _ := io.ReadAll(r.Body)
+			if len(bodyBytes) > 0 {
+				requestBody = string(bodyBytes)
+				r.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
+			}
 		}
+	}
+	// 请求体截断，避免日志过大
+	if len(requestBody) > 2000 {
+		requestBody = requestBody[:2000]
 	}
 
 	// 获取当前用户信息（AdminAuth 中间件已设置 context）
@@ -124,6 +134,10 @@ func OperationLog(r *ghttp.Request) {
 
 	// ---- Next() 之后提取响应数据 ----
 	responseBody := r.Response.BufferString()
+	// 响应体截断，避免日志过大
+	if len(responseBody) > 2000 {
+		responseBody = responseBody[:2000]
+	}
 	var status int = 1
 	var errorMessage string
 	if r.GetError() != nil {

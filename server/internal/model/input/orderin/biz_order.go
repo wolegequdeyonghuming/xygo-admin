@@ -25,7 +25,7 @@ type BizOrderListInp struct {
 
 // BizOrderListItem 订单主表列表项
 type BizOrderListItem struct {
-	Id                int64       `json:"id" dc:"主键"`
+	Id                int64       `json:"id,string" dc:"主键"`
 	OrderNo           string      `json:"orderNo" dc:"订单编号"`
 	OrderStatus       *int        `json:"orderStatus" dc:"订单状态"`
 	ScheduleDate      *gtime.Time `json:"scheduleDate" dc:"排单日期"`
@@ -71,7 +71,7 @@ type BizOrderListModel struct {
 
 // BizOrderViewModel 订单主表详情出参
 type BizOrderViewModel struct {
-	Id                int64       `json:"id" dc:"主键"`
+	Id                int64       `json:"id,string" dc:"主键"`
 	OrderNo           string      `json:"orderNo" dc:"订单编号"`
 	OrderStatus       *int        `json:"orderStatus" dc:"订单状态"`
 	ScheduleDate      *gtime.Time `json:"scheduleDate" dc:"排单日期"`
@@ -185,8 +185,8 @@ type BizOrderStepEditInp struct {
 
 // BizOrderDetailListItem 订单详细情况列表项
 type BizOrderDetailListItem struct {
-	Id        int64  `json:"id" dc:"主键"`
-	OrderId   int64  `json:"orderId" dc:"订单id"`
+	Id        int64  `json:"id,string" dc:"主键"`
+	OrderId   int64  `json:"orderId,string" dc:"订单id"`
 	UserId    int64  `json:"userId" dc:"操作人"`
 	UserName  string `json:"userName" dc:"操作人姓名"`
 	Content   string `json:"content" dc:"内容"`

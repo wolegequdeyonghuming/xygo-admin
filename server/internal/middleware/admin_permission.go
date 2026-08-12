@@ -29,6 +29,12 @@ var permCache struct {
 
 // AdminPermission 后台 API 权限校验中间件（放在 AdminAuth 之后）
 func AdminPermission(r *ghttp.Request) {
+	// 上传接口对所有已登录用户开放（后台/收单小程序均需上传附件）
+	if strings.HasPrefix(r.URL.Path, "/admin/upload") {
+		r.Middleware.Next()
+		return
+	}
+
 	user := contexts.GetUser(r.Context())
 	if user == nil {
 		r.Middleware.Next()
