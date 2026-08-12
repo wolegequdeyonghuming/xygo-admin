@@ -74,3 +74,61 @@ $uni-color-subtitle: #555555; // 二级标题颜色
 $uni-font-size-subtitle:26px;
 $uni-color-paragraph: #3F536E; // 文章段落颜色
 $uni-font-size-paragraph:15px;
+
+/* ============================================================
+ * 收单员小程序 设计令牌（Design Tokens）
+ * 原型设计稿 375px = 750rpx（1px = 2rpx）
+ * ============================================================ */
+
+/* 主操作/链接色 */
+$color-primary: #336FFF;   // 蓝色按钮、可点击电话/地址
+$color-primary-tag: #1F61FF; // 蓝色标签文字
+$color-primary-bg: #D0E3FF; // 蓝色标签底
+
+/* 语义数字色（顶部统计卡） */
+$color-stat-red: #D92400;
+$color-stat-green: #299A0C;
+$color-stat-blue: #1F61FF;
+
+/* 红标签：待预约 */
+$color-tag-red: #D92400;
+$color-tag-red-bg: #FFDED6;
+
+/* 黄标签：待收单 */
+$color-tag-yellow: #FE8B00;
+$color-tag-yellow-bg: #FDE9B1;
+
+/* 蓝标签：已处理 */
+$color-tag-blue: #1F61FF;
+$color-tag-blue-bg: #D0E3FF;
+
+/* 文字 */
+$color-text: #333333;      // 主要文字
+$color-text-sub: #8B8C8F;  // 次要文字
+$color-placeholder: #C0C4CC; // 占位符
+
+/* 背景 */
+$color-bg: #F5F6F8;        // 页面背景
+$color-card: #FFFFFF;      // 卡片白底
+$color-fill: #F8F9FA;      // 浅灰底（输入框/详情折叠区）
+$color-btn-ghost: #F5F7FA; // 次要按钮（暂存）
+
+/* 间距（rpx）：原型 px×2 */
+$space-module: 48rpx;      // 模块间 24px
+$space-card: 40rpx;        // 卡片间 20px
+$space-field: 24rpx;       // 卡片内字段行距 12px
+$padding-card-list: 20rpx; // 列表卡内边距 10px
+$padding-card-detail: 32rpx; // 详情/表单/我的卡内边距 16px
+
+/* 圆角（rpx）：原型 px×2 */
+$radius-card-list: 20rpx;  // 列表卡 10px
+$radius-card-detail: 24rpx; // 详情/表单/我的卡 12px
+$radius-tag: 16rpx;        // 标签 8px
+$radius-input: 16rpx;      // 输入框 8px
+$radius-btn: 20rpx;        // 按钮 10px
+
+/* 字号 */
+$font-24: 48rpx; // 24px
+$font-16: 32rpx; // 16px
+$font-14: 28rpx; // 14px
+$font-12: 24rpx; // 12px

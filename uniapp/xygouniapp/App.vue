@@ -12,9 +12,14 @@
 	}
 </script>
 
-<style>
+<style lang="scss">
 	page {
-		background-color: #f5f5f5;
+		/* wot-design-uni 主题主色 */
+		--wot-color-theme: #336FFF;
+		--wot-color-theme-light: #336FFF;
+		--wot-color-theme-dark: #2a5bd6;
+
+		background-color: #f5f6f8;
 		font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 		font-size: 28rpx;
 		color: #333333;

@@ -9,7 +9,7 @@ const request = (options = {}) => {
       ...options.header,
     }
     if (token) {
-      header['Xy-User-Token'] = token
+      header['Authorization'] = `Bearer ${token}`
     }
 
     uni.request({
@@ -25,8 +25,13 @@ const request = (options = {}) => {
           } else if (data.code === 401) {
             uni.removeStorageSync(config.TOKEN_KEY)
             uni.showToast({ title: '请先登录', icon: 'none' })
+            uni.reLaunch({ url: '/pages/login/index' })
             reject(data)
           } else {
+            uni.showToast({ title: data.message || '请求失败', icon: 'none' })
+            reject(data)
+          }
+        } else {
             uni.showToast({ title: data.message || '请求失败', icon: 'none' })
             reject(data)
           }

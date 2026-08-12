@@ -6,5 +6,5 @@ BASE_URL = ''
 
 export default {
   BASE_URL,
-  TOKEN_KEY: 'xygo_token',
+  TOKEN_KEY: 'xygo_staff_token',
 }

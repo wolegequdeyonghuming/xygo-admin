@@ -4,28 +4,21 @@
 
     <view class="logo-area">
       <image class="logo" src="/static/logo.png" mode="aspectFit"></image>
-      <text class="app-name">XYGo Admin</text>
-      <text class="app-desc">企业级中后台管理系统</text>
+      <text class="app-name">收单员工作台</text>
+      <text class="app-desc">账号密码登录</text>
     </view>
 
-    <view class="login-area">
-      <!-- #ifdef MP-WEIXIN -->
-      <button class="login-btn wx-btn" :loading="loading" @tap="handleWxLogin">
-        微信一键登录
-      </button>
-      <!-- #endif -->
+    <view class="form-area">
+      <view class="field">
+        <text class="field-label">账号</text>
+        <wd-input v-model="username" placeholder="请输入收单员账号" clearable custom-class="form-input" />
+      </view>
+      <view class="field">
+        <text class="field-label">密码</text>
+        <wd-input v-model="password" type="password" placeholder="请输入密码" show-password custom-class="form-input" />
+      </view>
 
-      <!-- #ifdef H5 -->
-      <button class="login-btn wx-btn" :loading="loading" @tap="handleOaLogin">
-        微信公众号登录
-      </button>
-      <!-- #endif -->
-
-      <!-- #ifndef MP-WEIXIN || H5 -->
-      <button class="login-btn wx-btn" disabled>
-        暂不支持当前平台登录
-      </button>
-      <!-- #endif -->
+      <button class="login-btn" :loading="loading" @tap="handleLogin">登 录</button>
     </view>
 
     <view class="agreement">
@@ -37,107 +30,56 @@
   </view>
 </template>
 
-<script>
-import { useUserStore } from '@/store/user'
-import { wxMappLogin, oaAuthUrl, oaCallback } from '@/api/auth'
+<script setup>
+import { ref, onLoad } from '@dcloudio/uni-app'
+import { staffLogin } from '@/api/staff'
+import { useStaffStore } from '@/store/staff'
 
-export default {
-  data() {
-    return {
-      loading: false,
-      statusBarHeight: 44,
-    }
-  },
-  onLoad(query) {
-    const sysInfo = uni.getSystemInfoSync()
-    this.statusBarHeight = sysInfo.statusBarHeight || 44
+const username = ref('')
+const password = ref('')
+const loading = ref(false)
+const statusBarHeight = ref(44)
 
-    // #ifdef H5
-    const urlParams = new URLSearchParams(window.location.search)
-    const code = urlParams.get('code')
-    const state = urlParams.get('state')
-    if (code) {
-      this.handleOaCallback(code, state || '')
-    }
-    // #endif
-  },
-  methods: {
-    // 小程序微信登录
-    async handleWxLogin() {
-      if (this.loading) return
-      this.loading = true
-      try {
-        const loginRes = await new Promise((resolve, reject) => {
-          uni.login({
-            provider: 'weixin',
-            success: resolve,
-            fail: reject,
-          })
-        })
-        if (!loginRes?.code) {
-          uni.showToast({ title: '获取微信授权失败', icon: 'none' })
-          return
-        }
-        const data = await wxMappLogin(loginRes.code)
-        const store = useUserStore()
-        store.setToken(data.token)
-        await store.fetchProfile()
-        uni.showToast({ title: '登录成功', icon: 'success' })
-        setTimeout(() => {
-          uni.switchTab({ url: '/pages/user/index' })
-        }, 500)
-      } catch (e) {
-        console.error('登录失败', e)
-      } finally {
-        this.loading = false
-      }
-    },
+const store = useStaffStore()
 
-    // H5 公众号登录 - 跳转授权
-    async handleOaLogin() {
-      if (this.loading) return
-      this.loading = true
-      try {
-        // #ifdef H5
-        const redirect = window.location.origin + window.location.pathname
-        const data = await oaAuthUrl(redirect)
-        window.location.href = data.url
-        // #endif
-      } catch (e) {
-        console.error('获取授权链接失败', e)
-        this.loading = false
-      }
-    },
+onLoad(() => {
+  const sysInfo = uni.getSystemInfoSync()
+  statusBarHeight.value = sysInfo.statusBarHeight || 44
+  // 已登录则直接进入首页（不允许游客登录）
+  if (store.isLoggedIn.value) {
+    uni.switchTab({ url: '/pages/order/list/index' })
+  }
+})
 
-    // H5 公众号登录 - 回调处理
-    async handleOaCallback(code, state) {
-      this.loading = true
-      try {
-        const data = await oaCallback(code, state)
-        const store = useUserStore()
-        store.setToken(data.token)
-        await store.fetchProfile()
-        uni.showToast({ title: '登录成功', icon: 'success' })
-        setTimeout(() => {
-          uni.switchTab({ url: '/pages/user/index' })
-        }, 500)
-      } catch (e) {
-        console.error('公众号回调登录失败', e)
-      } finally {
-        this.loading = false
-      }
-    },
-  },
+async function handleLogin() {
+  if (loading.value) return
+  if (!username.value.trim() || !password.value) {
+    uni.showToast({ title: '请输入账号和密码', icon: 'none' })
+    return
+  }
+  loading.value = true
+  try {
+    const data = await staffLogin(username.value.trim(), password.value)
+    store.setToken(data.accessToken)
+    await store.fetchProfile()
+    uni.showToast({ title: '登录成功', icon: 'success' })
+    setTimeout(() => uni.switchTab({ url: '/pages/order/list/index' }), 400)
+  } catch (e) {
+    // 错误已由 request 提示
+  } finally {
+    loading.value = false
+  }
 }
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .login-page {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
-  background: linear-gradient(180deg, #e8f0fe 0%, #f5f5f5 50%);
+  background: linear-gradient(180deg, #e8f0fe 0%, #f5f6f8 55%);
+  box-sizing: border-box;
 }
 
 .logo-area {
@@ -146,30 +88,43 @@ export default {
   align-items: center;
   margin-top: 120rpx;
 }
-
 .logo {
   width: 160rpx;
   height: 160rpx;
   border-radius: 32rpx;
 }
-
 .app-name {
   font-size: 44rpx;
   font-weight: 700;
   color: #1a1a1a;
   margin-top: 32rpx;
 }
-
 .app-desc {
   font-size: 26rpx;
-  color: #999;
+  color: #8b8c8f;
   margin-top: 12rpx;
 }
 
-.login-area {
+.form-area {
   width: 100%;
   padding: 0 80rpx;
-  margin-top: 120rpx;
+  margin-top: 100rpx;
+  box-sizing: border-box;
+}
+.field {
+  margin-bottom: 40rpx;
+}
+.field-label {
+  display: block;
+  font-size: 28rpx;
+  color: #333333;
+  font-weight: 600;
+  margin-bottom: 16rpx;
+}
+:deep(.form-input) {
+  background: #ffffff;
+  border-radius: 16rpx;
+  padding: 0 24rpx;
 }
 
 .login-btn {
@@ -178,25 +133,18 @@ export default {
   line-height: 96rpx;
   border-radius: 48rpx;
   font-size: 32rpx;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: 2rpx;
   border: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  background: #336fff;
+  color: #ffffff;
+  margin-top: 60rpx;
 }
-
 .login-btn::after {
   border: none;
 }
-
-.wx-btn {
-  background: #07c160;
-  color: #ffffff;
-}
-
-.wx-btn:active {
-  background: #06ad56;
+.login-btn:active {
+  background: #2a5bd6;
 }
 
 .agreement {
@@ -205,14 +153,12 @@ export default {
   display: flex;
   align-items: center;
 }
-
 .agree-text {
   font-size: 22rpx;
   color: #999;
 }
-
 .agree-link {
   font-size: 22rpx;
-  color: #4C84FF;
+  color: #336fff;
 }
 </style>

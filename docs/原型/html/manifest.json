@@ -1,0 +1,175 @@
+{
+  "version": 2,
+  "kind": "pixso.productPrototypeDemoPackage",
+  "generatedAt": "2026-08-11T12:10:41.482Z",
+  "file": {
+    "name": "防跑单",
+    "appVersion": "v3.0.3.4",
+    "kiwiVersion": "v10.00"
+  },
+  "document": {
+    "path": "document/document.pip",
+    "mimeType": "application/pip",
+    "size": 241726
+  },
+  "pixsoBinary": {
+    "path": "pixso.binary",
+    "mimeType": "application/octet-stream",
+    "size": 31944,
+    "hash": "2bcb927c6f5825e98990fb3ec338ab239c064caf",
+    "source": "fallback"
+  },
+  "presentation": [
+    {
+      "path": "index.html",
+      "mimeType": "text/html",
+      "size": 438,
+      "hash": "9c8fc4887e10110d5e13c59df1b462fbd4a1378b"
+    },
+    {
+      "path": "favicon.ico",
+      "mimeType": "image/x-icon",
+      "size": 4414,
+      "hash": "3316b9ed65b3346fb4dbd7a2f5f5feb41fac7fe9"
+    },
+    {
+      "path": "使用前必读.txt",
+      "mimeType": "text/plain",
+      "size": 4327,
+      "hash": "61ce24c88418309d5ec75a8ab97056bc4d22f61d"
+    },
+    {
+      "path": "启动-mac-intel",
+      "mimeType": "application/octet-stream",
+      "size": 8763456,
+      "hash": "8b9f0f9c1dc95e2a803f365a75ba87079221eab1"
+    },
+    {
+      "path": "启动-mac-m1",
+      "mimeType": "application/octet-stream",
+      "size": 8202546,
+      "hash": "deb24b7b38519bfb6f1d3422e9e42005b44c5f81"
+    },
+    {
+      "path": "启动-windows.exe",
+      "mimeType": "application/vnd.microsoft.portable-executable",
+      "size": 8740352,
+      "hash": "4b7e62cc8f20e0387176a5c7e5c63a60c625701e"
+    },
+    {
+      "path": "presentation-assets/index-DMOTWyqP.js",
+      "mimeType": "text/javascript",
+      "size": 451294,
+      "hash": "25ade516e04f7354ce9caea7196610ab9d9b06cd"
+    },
+    {
+      "path": "presentation-assets/index-CL2IxeXp.css",
+      "mimeType": "text/css",
+      "size": 18196,
+      "hash": "8eb6716429beabc2861149f9f87425ac8e39db4e"
+    },
+    {
+      "path": "presentation-assets/universal-dark-DQVawYfl.png",
+      "mimeType": "image/png",
+      "size": 17318,
+      "hash": "c3bdd2d5bf1d69b165d61a206b6de5d8d4fc3146"
+    },
+    {
+      "path": "presentation-assets/editor_loading_light-DXjAOxwR.gif",
+      "mimeType": "application/octet-stream",
+      "size": 130914,
+      "hash": "f0731f2eb24f1befd7c37e473755f4c6141080f3"
+    }
+  ],
+  "runtime": [
+    {
+      "type": "js",
+      "path": "runtime/PipModule.js",
+      "sourceUrl": "https://cdnhw.pixso.cn/app/wasm/prototype/PipModule.1dd30106.js",
+      "mimeType": "text/javascript",
+      "size": 334272
+    },
+    {
+      "type": "wasm",
+      "path": "runtime/PipModule.wasm",
+      "sourceUrl": "https://cdnhw.pixso.cn/app/wasm/prototype/PipModule.1dd30106.wasm",
+      "mimeType": "application/wasm",
+      "size": 23643030
+    }
+  ],
+  "assets": [
+    {
+      "type": "thumbnail",
+      "hash": "e2ab72a6f1c6bca0c356b9160ec43ec1ecb5751b",
+      "path": "assets/images/e2ab72a6f1c6bca0c356b9160ec43ec1ecb5751b.thumb.png",
+      "mimeType": "image/png",
+      "size": 53128,
+      "sourceMimeType": "thumb.png"
+    },
+    {
+      "type": "image",
+      "hash": "25f92b78836397872bfd41a871d76033bcd4df31",
+      "path": "assets/images/25f92b78836397872bfd41a871d76033bcd4df31.png",
+      "mimeType": "image/png",
+      "size": 10770,
+      "sourceMimeType": "png"
+    },
+    {
+      "type": "image",
+      "hash": "9f580ee0f558cd4a4709a64e27636aff3ae8f100",
+      "path": "assets/images/9f580ee0f558cd4a4709a64e27636aff3ae8f100.png",
+      "mimeType": "image/png",
+      "size": 8773,
+      "sourceMimeType": "png"
+    },
+    {
+      "type": "image",
+      "hash": "f67a4916dfd25571b680837545553b40f1a73c6e",
+      "path": "assets/images/f67a4916dfd25571b680837545553b40f1a73c6e.png",
+      "mimeType": "image/png",
+      "size": 11945,
+      "sourceMimeType": "png"
+    }
+  ],
+  "fonts": [
+    {
+      "family": "Noto Sans SC",
+      "style": "Regular",
+      "sha1": "62889f7ccafbf1f1b2a081e0fa79bfceed2e5e68",
+      "path": "fonts/62889f7ccafbf1f1b2a081e0fa79bfceed2e5e68.ttf",
+      "mimeType": "font/ttf",
+      "suffix": ".ttf",
+      "fileName": "NotoSansSC-Regular_1",
+      "isDefault": true,
+      "size": 17805476
+    },
+    {
+      "family": "Inter",
+      "style": "Regular",
+      "sha1": "4786a0feb4c853189782709a5ac5b5dfb696942b",
+      "path": "fonts/4786a0feb4c853189782709a5ac5b5dfb696942b.otf",
+      "mimeType": "font/otf",
+      "suffix": ".otf",
+      "fileName": "Inter-Regular_1",
+      "isDefault": false,
+      "size": 258992
+    }
+  ],
+  "failures": [
+    {
+      "stage": "font",
+      "id": "Noto Sans SC/Bold",
+      "message": "font metadata not found"
+    },
+    {
+      "stage": "font",
+      "id": "Noto Sans SC/Medium",
+      "message": "font metadata not found"
+    },
+    {
+      "stage": "font",
+      "id": "Noto Sans SC/Regular",
+      "message": "font metadata not found"
+    }
+  ]
+}
