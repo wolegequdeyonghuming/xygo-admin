@@ -438,8 +438,8 @@
   /** 下一步：仅推进订单状态（不弹窗、不保存字段） */
   const handleStepSubmitNext = async (formData: any) => {
     try {
-      await fetchBizOrderStepEdit(formData)
-      await fetchBizOrderStepNext(formData.id)
+      const res = await fetchBizOrderStepEdit(formData)
+      await fetchBizOrderStepNext(res?.id ?? formData.id)
       ElMessage.success('保存成功')
       stepDialogVisible.value = false
       await refreshData()

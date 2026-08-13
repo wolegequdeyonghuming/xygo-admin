@@ -18,7 +18,8 @@ import { ref, watch } from 'vue'
 import { tabActive } from '@/utils/tab'
 
 const tabs = [
-  { icon: 'home', title: '订单' },
+  { icon: 'home', title: '首页' },
+  { icon: 'list', title: '订单' },
   { icon: 'user', title: '我的' }
 ]
 
@@ -28,7 +29,7 @@ watch(tabActive, (v) => {
   selected.value = v
 })
 
-const PATHS = ['/pages/order/list/index', '/pages/user/index']
+const PATHS = ['/pages/order/list/index', '/pages/order/query/index', '/pages/user/index']
 
 function onTap(i) {
   if (selected.value === i) return

@@ -56,6 +56,27 @@ func (c *ControllerV1) OrderCollect(ctx context.Context, req *api.OrderCollectRe
 	return &api.OrderCollectRes{}, err
 }
 
+// OrderSchedule 排单（步骤2）
+func (c *ControllerV1) OrderSchedule(ctx context.Context, req *api.OrderScheduleReq) (res *api.OrderScheduleRes, err error) {
+	err = service.StaffOrder().Schedule(ctx, &req.StaffOrderScheduleInp)
+	return &api.OrderScheduleRes{}, err
+}
+
+// OrderComplete 完工（步骤6）
+func (c *ControllerV1) OrderComplete(ctx context.Context, req *api.OrderCompleteReq) (res *api.OrderCompleteRes, err error) {
+	err = service.StaffOrder().Complete(ctx, &req.StaffOrderCompleteInp)
+	return &api.OrderCompleteRes{}, err
+}
+
+// UserAgentList 收单员列表
+func (c *ControllerV1) UserAgentList(ctx context.Context, req *api.UserAgentListReq) (res *api.UserAgentListRes, err error) {
+	result, err := service.StaffOrder().UserAgents(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return &api.UserAgentListRes{result}, nil
+}
+
 // OrderDetailList 订单详细情况列表
 func (c *ControllerV1) OrderDetailList(ctx context.Context, req *api.OrderDetailListReq) (res *api.OrderDetailListRes, err error) {
 	result, err := service.BizOrder().DetailList(ctx, req.OrderId)

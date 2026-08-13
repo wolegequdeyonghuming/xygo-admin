@@ -63,8 +63,13 @@ func StaffAuth(r *ghttp.Request) {
 		return
 	}
 
-	// 角色守卫：仅收单员/收单员管理员
-	if authUser.RoleKey != consts.RoleAgent && authUser.RoleKey != consts.RoleAgentManager {
+	// 角色守卫：话务员/收单员/收单员管理员/文员/管理员/超管可访问
+	if !consts.IsSuperRole(authUser.RoleKey) &&
+		authUser.RoleKey != consts.RoleTelemarketer &&
+		authUser.RoleKey != consts.RoleAgent &&
+		authUser.RoleKey != consts.RoleAgentManager &&
+		authUser.RoleKey != consts.RoleDocumentary &&
+		authUser.RoleKey != consts.RoleAdmin {
 		r.SetError(gerror.NewCode(consts.CodeNoPermission, "无权限访问收单小程序"))
 		return
 	}

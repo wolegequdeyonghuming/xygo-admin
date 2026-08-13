@@ -1,10 +1,8 @@
 <template>
   <view class="login-page">
-    <view class="status-bar" :style="{ height: statusBarHeight + 'px' }"></view>
-
     <view class="logo-area">
       <image class="logo" src="/static/logo.png" mode="aspectFit"></image>
-      <text class="app-name">收单员工作台</text>
+      <text class="app-name">{{ siteName || '移动业务平台' }}</text>
       <text class="app-desc">账号密码登录</text>
     </view>
 
@@ -36,17 +34,16 @@ import { onLoad } from '@dcloudio/uni-app'
 import { staffLogin } from '@/api/staff'
 import { useStaffStore } from '@/store/staff'
 import config from '@/utils/config'
+import { siteName, loadSiteName } from '@/utils/site'
 
 const username = ref('')
 const password = ref('')
 const loading = ref(false)
-const statusBarHeight = ref(44)
 
 const store = useStaffStore()
 
 onLoad(() => {
-  const sysInfo = uni.getSystemInfoSync()
-  statusBarHeight.value = sysInfo.statusBarHeight || 44
+  loadSiteName()
   // 已登录则直接进入首页（不允许游客登录）
   if (store.isLoggedIn.value) {
     uni.reLaunch({ url: '/pages/order/list/index' })
@@ -89,6 +86,7 @@ async function handleLogin() {
   flex-direction: column;
   align-items: center;
   background: linear-gradient(180deg, #e8f0fe 0%, #f5f6f8 55%);
+  padding-top: 20px;
   box-sizing: border-box;
 }
 

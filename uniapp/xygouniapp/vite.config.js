@@ -9,6 +9,10 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url))
     }
   },
+  build: {
+    target: 'es2015',
+    outDir: '../../deploy/uni'
+  },
   server: {
     port: 5173,
     proxy: {
@@ -21,6 +25,10 @@ export default defineConfig({
         changeOrigin: true
       },
       '/attachment': {
+        target: 'http://127.0.0.1:4096',
+        changeOrigin: true
+      },
+      '/site': {
         target: 'http://127.0.0.1:4096',
         changeOrigin: true
       }

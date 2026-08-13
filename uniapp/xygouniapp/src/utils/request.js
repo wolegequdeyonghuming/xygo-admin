@@ -1,5 +1,10 @@
 import config from './config'
 
+// 业务状态码（与后端 internal/consts/code.go 保持一致）
+const CODE_SUCCESS = 0
+const CODE_UNAUTHORIZED = 61 // gcode.CodeNotAuthorized：未登录/登录失效
+const CODE_KICKED_OUT = 10010 // 被踢下线（SSO单点登录/管理员强制下线）
+
 const request = (options = {}) => {
   return new Promise((resolve, reject) => {
     const token = uni.getStorageSync(config.TOKEN_KEY)
@@ -20,10 +25,13 @@ const request = (options = {}) => {
       success: (res) => {
         if (res.statusCode === 200) {
           const data = res.data
-          if (data.code === 0) {
+          if (data.code === CODE_SUCCESS) {
             resolve(data.data)
-          } else if (data.code === 401) {
+          } else if (data.code === CODE_UNAUTHORIZED) {
             handleUnauthorized(options, resolve, reject, data)
+          } else if (data.code === CODE_KICKED_OUT) {
+            logout(data.message)
+            reject(data)
           } else {
             uni.showToast({ title: data.message || '请求失败', icon: 'none' })
             reject(data)
@@ -41,9 +49,21 @@ const request = (options = {}) => {
   })
 }
 
+// 清除本地会话并跳转登录页
+function logout(message = '请先登录') {
+  uni.removeStorageSync(config.TOKEN_KEY)
+  uni.removeStorageSync(config.REFRESH_TOKEN_KEY)
+  uni.showToast({ title: message, icon: 'none' })
+  uni.reLaunch({ url: '/pages/login/index' })
+}
+
+let refreshPromise = null
+
 // 用 refreshToken 换新 accessToken（48h 会话内自动续期）
+// 单飞模式：并发的多个未授权请求共享同一个刷新 Promise，避免重复刷新
 function refreshAccessToken() {
-  return new Promise((resolve, reject) => {
+  if (refreshPromise) return refreshPromise
+  refreshPromise = new Promise((resolve, reject) => {
     const refreshToken = uni.getStorageSync(config.REFRESH_TOKEN_KEY)
     if (!refreshToken) {
       reject(new Error('no refresh token'))
@@ -56,7 +76,7 @@ function refreshAccessToken() {
       header: { 'Content-Type': 'application/json' },
       success: (res) => {
         const data = res.data
-        if (data && data.code === 0 && data.data && data.data.accessToken) {
+        if (data && data.code === CODE_SUCCESS && data.data && data.data.accessToken) {
           uni.setStorageSync(config.TOKEN_KEY, data.data.accessToken)
           resolve(data.data.accessToken)
         } else {
@@ -65,28 +85,25 @@ function refreshAccessToken() {
       },
       fail: reject,
     })
+  }).finally(() => {
+    refreshPromise = null
   })
+  return refreshPromise
 }
 
-// 401 处理：先尝试刷新 token 并重放原请求，失败则清除会话回登录页
+// 未授权处理：先尝试刷新 token 并重放原请求，失败则清除会话回登录页
 function handleUnauthorized(options, resolve, reject, originalData) {
-  const logout = () => {
-    uni.removeStorageSync(config.TOKEN_KEY)
-    uni.removeStorageSync(config.REFRESH_TOKEN_KEY)
-    uni.showToast({ title: '请先登录', icon: 'none' })
-    uni.reLaunch({ url: '/pages/login/index' })
-    reject(originalData)
-  }
-
   if (options._retried) {
-    logout()
+    logout(originalData.message)
+    reject(originalData)
     return
   }
   refreshAccessToken()
     .then(() => request({ ...options, _retried: true }))
     .then(resolve)
     .catch(() => {
-      logout()
+      logout(originalData.message)
+      reject(originalData)
     })
 }
 

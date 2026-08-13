@@ -57,9 +57,9 @@ func (s *sStaffAuth) Login(ctx context.Context, in *staffin.LoginInp) (*staffin.
 		roleKey = role.Key
 	}
 
-	// 角色守卫：仅收单员/收单员管理员可登录小程序
-	if roleKey != consts.RoleAgent && roleKey != consts.RoleAgentManager {
-		return nil, gerror.New("非收单员账号，无法登录收单小程序")
+	// 角色守卫：话务员/收单员/收单员管理员/文员/管理员/超管可登录小程序
+	if !isStaffRole(roleKey) {
+		return nil, gerror.New("当前角色无权限登录小程序")
 	}
 
 	authUser := model.AuthUser{
@@ -122,8 +122,8 @@ func (s *sStaffAuth) Refresh(ctx context.Context, refreshToken string) (*staffin
 		roleId = uint64(role.Id)
 		roleKey = role.Key
 	}
-	if roleKey != consts.RoleAgent && roleKey != consts.RoleAgentManager {
-		return nil, gerror.New("非收单员账号，无法使用收单小程序")
+	if !isStaffRole(roleKey) {
+		return nil, gerror.New("当前角色无权限登录小程序")
 	}
 
 	authUser := model.AuthUser{
@@ -203,10 +203,23 @@ func (s *sStaffAuth) Profile(ctx context.Context) (*staffin.ProfileModel, error)
 		Username: user.Username,
 		RealName: user.RealName,
 		Nickname: user.Nickname,
+		Avatar:   user.Avatar,
 		Mobile:   user.Mobile,
 		DeptName: deptName,
 		PostName: postName,
 		RoleKey:  roleKey,
 		RoleName: roleName,
 	}, nil
+}
+
+// isStaffRole 是否允许登录收单小程序的角色（话务员/收单员/收单员管理员/文员/管理员/超管）
+func isStaffRole(roleKey string) bool {
+	if consts.IsSuperRole(roleKey) {
+		return true
+	}
+	switch roleKey {
+	case consts.RoleTelemarketer, consts.RoleAgent, consts.RoleAgentManager, consts.RoleDocumentary, consts.RoleAdmin:
+		return true
+	}
+	return false
 }

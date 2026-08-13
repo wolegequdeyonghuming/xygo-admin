@@ -126,6 +126,19 @@ func canOperateOrder(ctx context.Context, role string, createdBy int64, agentId 
 	return false
 }
 
+// canAgentManagerAppointCollect 收单员管理员操作预约(3)/收单(4)时的收单员归属校验。
+// 收单员管理员可查看全部订单，但预约/收单仅限收单员为自己的单；其余步骤（如排单）不受限。
+func canAgentManagerAppointCollect(ctx context.Context, role string, agentId int64, step int) bool {
+	if role != consts.RoleAgentManager {
+		return true
+	}
+	switch step {
+	case consts.OrderStatusAppointed, consts.OrderStatusVisited:
+		return agentId == currentUserId(ctx)
+	}
+	return true
+}
+
 // canDelete 判断角色是否允许删除某状态的订单。
 //   - 话务员/话务员管理员：仅可删除"已录单"状态的单
 //   - 管理员/超管：任意状态

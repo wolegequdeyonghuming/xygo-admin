@@ -1,11 +1,12 @@
 <template>
   <view class="home-page">
     <!-- 顶部栏 -->
-    <view class="top-bar" :style="{ paddingTop: statusBarHeight + 'px' }">
-      <text class="sys-name">{{ config.SYS_NAME }}</text>
+    <view class="top-bar">
+      <text class="sys-name">{{ siteName || config.SYS_NAME }}</text>
       <view class="user-info" @tap="goUser">
+        <image v-if="avatarUrl" :src="avatarUrl" class="avatar-img" mode="aspectFill" />
+        <view v-else class="avatar">{{ avatarChar }}</view>
         <text class="nickname">{{ nickname }}</text>
-        <view class="avatar">{{ avatarChar }}</view>
       </view>
     </view>
 
@@ -17,7 +18,7 @@
       <view class="list-title-row">
         <text class="list-title">{{ currentTitle }}</text>
         <wd-datetime-picker
-          v-if="activeTab === 2"
+          v-if="showMonthPicker"
           v-model="monthTs"
           type="year-month"
           @confirm="onMonthConfirm"
@@ -40,16 +41,16 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { onLoad, onShow, onPullDownRefresh, onReachBottom } from '@dcloudio/uni-app'
 import { useStaffStore } from '@/store/staff'
 import config from '@/utils/config'
 import { tabActive } from '@/utils/tab'
 import { setCurrentOrder } from '@/utils/orderBus'
+import { siteName, loadSiteName } from '@/utils/site'
 import { getOrderList, getOrderStat } from '@/api/staff'
 
 const store = useStaffStore()
-const statusBarHeight = ref(44)
 const activeTab = ref(0)
 const page = ref(1)
 const pageSize = 20
@@ -59,22 +60,51 @@ const loading = ref(false)
 const month = ref(defaultMonth())
 const monthTs = ref(Date.now())
 
-const stat = ref({ todo: 0, today: 0, done: 0 })
+const stat = ref({ todayRecorded: 0, recorded: 0, pendingSchedule: 0, todo: 0, today: 0, done: 0 })
 
-const TABS = [
-  { label: '待处理', color: '#D92400', statuses: [2, 3], title: '待处理订单' },
-  { label: '今日已处理', color: '#299A0C', statuses: [4, 5, 6], title: '今日已处理订单' },
-  { label: '已处理', color: '#1F61FF', statuses: [4, 5, 6], title: '已处理订单' }
-]
+const RED = '#D92400'
+const GREEN = '#299A0C'
+const BLUE = '#1F61FF'
+const ORANGE = '#FE8B00'
 
-const nickname = computed(() => store.userInfo?.nickname || store.userInfo?.realName || '')
-const avatarChar = computed(() => (nickname.value || '员').slice(0, 1))
-const currentTitle = computed(() => TABS[activeTab.value].title)
-const statItems = computed(() => [
-  { label: TABS[0].label, color: TABS[0].color, value: stat.value.todo },
-  { label: TABS[1].label, color: TABS[1].color, value: stat.value.today },
-  { label: TABS[2].label, color: TABS[2].color, value: stat.value.done }
-])
+// 按角色生成首页统计 tab（label/color/statKey/statuses/mode/title）
+const tabs = computed(() => {
+  const r = store.userInfo.value?.roleKey || ''
+  if (r === 'telemarketer') {
+    return [
+      { label: '今日录单', color: GREEN, statKey: 'todayRecorded', statuses: [], mode: 'createdToday', title: '今日录单订单' },
+      { label: '已录单', color: BLUE, statKey: 'recorded', statuses: [1], title: '已录单订单' }
+    ]
+  }
+  if (r === 'agent') {
+    return [
+      { label: '待收单', color: RED, statKey: 'todo', statuses: [2, 3], title: '待收单订单' },
+      { label: '今日收单', color: GREEN, statKey: 'today', statuses: [4, 5, 6], mode: 'today', title: '今日收单订单' },
+      { label: '已收单', color: BLUE, statKey: 'done', statuses: [4, 5, 6], mode: 'month', title: '已收单订单' }
+    ]
+  }
+  // 收单员管理员 / 文员 / 管理员 / 超管
+  return [
+    { label: '待排单', color: ORANGE, statKey: 'pendingSchedule', statuses: [1], mode: 'pending', title: '待排单订单' },
+    { label: '待收单', color: RED, statKey: 'todo', statuses: [2, 3], title: '待收单订单' },
+    { label: '已收单', color: BLUE, statKey: 'done', statuses: [4, 5, 6], mode: 'month', title: '已收单订单' }
+  ]
+})
+
+watch(tabs, () => {
+  if (activeTab.value >= tabs.value.length) {
+    activeTab.value = 0
+  }
+  refresh()
+})
+
+const nickname = computed(() => store.userInfo.value?.nickname || store.userInfo.value?.realName || '')
+const displayName = computed(() => store.userInfo.value?.realName || store.userInfo.value?.nickname || '')
+const avatarUrl = computed(() => store.userInfo.value?.avatar || '')
+const avatarChar = computed(() => (displayName.value || '员').slice(0, 1))
+const currentTitle = computed(() => (tabs.value[activeTab.value] || {}).title || '')
+const statItems = computed(() => tabs.value.map((t) => ({ label: t.label, color: t.color, value: stat.value[t.statKey] ?? 0 })))
+const showMonthPicker = computed(() => (tabs.value[activeTab.value] || {}).mode === 'month')
 
 function defaultMonth() {
   const d = new Date()
@@ -102,7 +132,7 @@ function fmtDate(v) {
 
 async function loadStat() {
   try {
-    stat.value = (await getOrderStat()) || { todo: 0, today: 0, done: 0 }
+    stat.value = (await getOrderStat()) || { todayRecorded: 0, recorded: 0, pendingSchedule: 0, todo: 0, today: 0, done: 0 }
   } catch (e) {
     // 忽略
   }
@@ -117,21 +147,27 @@ async function fetchList(reset) {
   if (loading.value) return
   loading.value = true
   try {
-    const tab = TABS[activeTab.value]
-    const params = { page: page.value, pageSize, statuses: tab.statuses.join(',') }
-    // 今日已处理：上门日期=今天；已处理：上门日期在选中月份内
-    if (activeTab.value === 1) {
+    const tab = tabs.value[activeTab.value] || {}
+    const params = { page: page.value, pageSize }
+    if (tab.statuses && tab.statuses.length) {
+      params.statuses = tab.statuses.join(',')
+    }
+    if (tab.mode === 'createdToday') {
+      const today = todayStr()
+      params.createdDateStart = today
+      params.createdDateEnd = today
+    } else if (tab.mode === 'pending') {
+      params.pendingOnly = true
+    } else if (tab.mode === 'today') {
       const today = todayStr()
       params.visitDateStart = today
       params.visitDateEnd = today
-    } else if (activeTab.value === 2) {
+    } else if (tab.mode === 'month') {
       const range = monthRange(month.value)
       params.visitDateStart = range.start
       params.visitDateEnd = range.end
     }
     const data = await getOrderList(params)
-    // TODO: 调试完成后移除
-    console.log('list sample', data.list && data.list[0])
     const items = (data.list || []).map((o) => ({
       ...o,
       visitDate: fmtDate(o.visitDate),
@@ -147,8 +183,7 @@ async function fetchList(reset) {
 }
 
 onLoad(() => {
-  const sysInfo = uni.getSystemInfoSync()
-  statusBarHeight.value = sysInfo.statusBarHeight || 44
+  loadSiteName()
   // 不允许游客登录
   if (!store.isLoggedIn.value) {
     uni.reLaunch({ url: '/pages/login/index' })
@@ -161,6 +196,10 @@ onLoad(() => {
 
 onShow(() => {
   tabActive.value = 0
+  // 确保用户资料（姓名/头像）已加载
+  if (!store.userInfo.value) {
+    store.fetchProfile()
+  }
   // 每次显示（含详情/表单返回）刷新统计与当前列表
   loadStat()
   refresh()
@@ -210,6 +249,7 @@ onReachBottom(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  padding-top: 20px;
   padding-left: 32rpx;
   padding-right: 32rpx;
   padding-bottom: 24rpx;
@@ -240,6 +280,11 @@ onReachBottom(() => {
   justify-content: center;
   font-size: 28rpx;
   font-weight: 700;
+}
+.avatar-img {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 50%;
 }
 .content {
   padding: 0 32rpx 130rpx;

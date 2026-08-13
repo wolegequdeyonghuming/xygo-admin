@@ -10,12 +10,12 @@ const props = defineProps({
 })
 
 // 订单状态 → 标签（收单员视角）
-// 待预约=红(#D92400/#FFDED6) 待收单=黄(#FE8B00/#FDE9B1) 已处理=蓝(#1F61FF/#D0E3FF)
+// 未收单（已录单/待预约）=橙(#FE8B00/#FDE9B1) 待收单=红(#D92400/#FFDED6) 已收单/已回访/已完工=蓝(#1F61FF/#D0E3FF)
 const MAP = {
   0: { text: '未成交', color: '#8B8C8F', bg: '#F0F0F0' },
-  1: { text: '已录单', color: '#8B8C8F', bg: '#F0F0F0' },
-  2: { text: '待预约', color: '#D92400', bg: '#FFDED6' },
-  3: { text: '待收单', color: '#FE8B00', bg: '#FDE9B1' },
+  1: { text: '已录单', color: '#FE8B00', bg: '#FDE9B1' },
+  2: { text: '待预约', color: '#FE8B00', bg: '#FDE9B1' },
+  3: { text: '待收单', color: '#D92400', bg: '#FFDED6' },
   4: { text: '已收单', color: '#1F61FF', bg: '#D0E3FF' },
   5: { text: '已回访', color: '#1F61FF', bg: '#D0E3FF' },
   6: { text: '已完工', color: '#1F61FF', bg: '#D0E3FF' }

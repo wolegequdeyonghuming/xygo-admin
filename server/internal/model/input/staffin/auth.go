@@ -50,6 +50,7 @@ type ProfileModel struct {
 	Username string `json:"username" dc:"用户名"`
 	RealName string `json:"realName" dc:"真实姓名"`
 	Nickname string `json:"nickname" dc:"昵称"`
+	Avatar   string `json:"avatar" dc:"头像"`
 	Mobile   string `json:"mobile" dc:"手机号"`
 	DeptName string `json:"deptName" dc:"部门名称"`
 	PostName string `json:"postName" dc:"岗位名称"`
@@ -60,17 +61,29 @@ type ProfileModel struct {
 // StaffOrderListInp 收单员订单列表入参
 type StaffOrderListInp struct {
 	form.PageReq
-	Statuses       string `json:"statuses" dc:"订单状态列表（逗号分隔）"`
-	VisitDateStart string `json:"visitDateStart" dc:"上门日期开始（YYYY-MM-DD）"`
-	VisitDateEnd   string `json:"visitDateEnd" dc:"上门日期结束（YYYY-MM-DD）"`
-	Keyword        string `json:"keyword" dc:"客户姓名/电话模糊搜索"`
+	Statuses          string `json:"statuses" dc:"订单状态列表（逗号分隔）"`
+	VisitDateStart    string `json:"visitDateStart" dc:"上门日期开始（YYYY-MM-DD）"`
+	VisitDateEnd      string `json:"visitDateEnd" dc:"上门日期结束（YYYY-MM-DD）"`
+	ScheduleDateStart string `json:"scheduleDateStart" dc:"排单日期开始（YYYY-MM-DD）"`
+	ScheduleDateEnd   string `json:"scheduleDateEnd" dc:"排单日期结束（YYYY-MM-DD）"`
+	CreatedDateStart  string `json:"createdDateStart" dc:"创建日期开始（YYYY-MM-DD）"`
+	CreatedDateEnd    string `json:"createdDateEnd" dc:"创建日期结束（YYYY-MM-DD）"`
+	PendingOnly       bool   `json:"pendingOnly" dc:"仅待排单（已录单且未派单）"`
+	Keyword           string `json:"keyword" dc:"客户姓名/电话模糊搜索"`
+	Area              int    `json:"area" dc:"区县（字典 area）"`
+	InstallAddress    string `json:"installAddress" dc:"安装地址模糊搜索"`
+	ContactPhone      string `json:"contactPhone" dc:"联系电话模糊搜索"`
+	BusinessType      string `json:"businessType" dc:"预约业务模糊搜索"`
 }
 
-// StaffOrderStatModel 收单员订单统计出参
+// StaffOrderStatModel 收单员订单统计出参（按角色取对应字段）
 type StaffOrderStatModel struct {
-	Todo  int `json:"todo" dc:"待处理（待预约+待收单）"`
-	Today int `json:"today" dc:"今日已处理"`
-	Done  int `json:"done" dc:"已处理（累计）"`
+	TodayRecorded   int `json:"todayRecorded" dc:"今日录单（话务员）"`
+	Recorded        int `json:"recorded" dc:"已录单（话务员）"`
+	PendingSchedule int `json:"pendingSchedule" dc:"待排单（已录单未派单）"`
+	Todo            int `json:"todo" dc:"待收单（待预约+待收单）"`
+	Today           int `json:"today" dc:"今日收单"`
+	Done            int `json:"done" dc:"已收单（累计）"`
 }
 
 // StaffOrderAppointInp 预约入参（步骤3）
@@ -107,4 +120,29 @@ type StaffAttachmentItem struct {
 // StaffAttachmentListModel 附件列表出参
 type StaffAttachmentListModel struct {
 	List []StaffAttachmentItem `json:"list"`
+}
+
+// StaffUserAgentItem 收单员（可派单对象）信息项
+type StaffUserAgentItem struct {
+	Id   int64  `json:"id" dc:"收单员用户ID"`
+	Name string `json:"name" dc:"收单员姓名"`
+}
+
+// StaffUserAgentListModel 收单员列表出参
+type StaffUserAgentListModel struct {
+	List []StaffUserAgentItem `json:"list"`
+}
+
+// StaffOrderScheduleInp 排单（派单）入参（步骤2，收单员管理员）
+type StaffOrderScheduleInp struct {
+	Id      int64 `json:"id" v:"required#订单ID不能为空" dc:"订单ID"`
+	AgentId int64 `json:"agentId" v:"required#请选择收单员" dc:"收单员用户ID"`
+}
+
+// StaffOrderCompleteInp 完工入参（步骤6，文员/管理员）
+type StaffOrderCompleteInp struct {
+	Id               int64  `json:"id" v:"required#订单ID不能为空" dc:"订单ID"`
+	BroadbandAccount string `json:"broadbandAccount" dc:"宽带账号"`
+	IsCompleted      int    `json:"isCompleted" dc:"是否完工"`
+	AgencyNo         string `json:"agencyNo" dc:"工号"`
 }

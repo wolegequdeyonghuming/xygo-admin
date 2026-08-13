@@ -220,7 +220,8 @@
       <ElButton v-if="step === 4" type="warning" :loading="loading" @click="handleSave">
         暂存
       </ElButton>
-      <ElButton type="primary" :loading="loading" @click="handleSaveNext">保存并下一步</ElButton>
+      <ElButton type="primary" :loading="loading" @click="handleSave">保存</ElButton>
+      <ElButton v-if="canSaveNext" type="primary" :loading="loading" @click="handleSaveNext">保存并下一步</ElButton>
     </template>
   </ElDialog>
 </template>
@@ -232,9 +233,10 @@
   import OrderComment from '../components/order-comment.vue'
   import { useDictStore } from '@/store/modules/dict'
   import { fetchBizOrderView } from '@/api/order/biz-order'
-  import { ORDER_STEP as STEP } from '../useOrderPerm'
+  import { ORDER_STEP as STEP, useOrderPerm } from '../useOrderPerm'
 
   const dictStore = useDictStore()
+  const { canStep } = useOrderPerm()
 
   const props = defineProps<{
     visible: boolean
@@ -257,6 +259,13 @@
 
   /** 是否编辑已有订单（非新增录单） */
   const isEdit = computed(() => props.orderId > 0)
+
+  /** 当前角色能否执行「保存并下一步」：
+   * 录单（新建/补录）保存后推进到派单，需派单权限；其余步骤保存后推进即执行本步骤本身 */
+  const canSaveNext = computed(() => {
+    if (props.step === STEP.RECORD) return canStep(STEP.ASSIGN)
+    return canStep(props.step)
+  })
 
   const stepTitleMap: Record<number, string> = {
     [STEP.RECORD]: '录单',

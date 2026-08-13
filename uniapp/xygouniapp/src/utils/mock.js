@@ -85,9 +85,9 @@ export const mockOrders = [
 
 // 待办 = 待预约(2) + 待收单(3)；已办 = 已上门(4)/已回访(5)/已完工(6)
 export const STAT_TABS = [
-  { key: 'todo', label: '待处理', color: '#D92400', statuses: [2, 3], title: '待处理订单' },
-  { key: 'today', label: '今日已处理', color: '#299A0C', statuses: [4, 5, 6], title: '今日已处理订单' },
-  { key: 'done', label: '已处理', color: '#1F61FF', statuses: [4, 5, 6], title: '已处理订单' }
+  { key: 'todo', label: '待收单', color: '#D92400', statuses: [2, 3], title: '待收单订单' },
+  { key: 'today', label: '今日收单', color: '#299A0C', statuses: [4, 5, 6], title: '今日收单订单' },
+  { key: 'done', label: '已收单', color: '#1F61FF', statuses: [4, 5, 6], title: '已收单订单' }
 ]
 
 export function filterOrders(tabIndex, list, keyword = '', month = '') {
@@ -99,7 +99,7 @@ export function filterOrders(tabIndex, list, keyword = '', month = '') {
         (o.customerName || '').includes(keyword) || (o.contactPhone || '').includes(keyword)
     )
   }
-  // 已处理 tab：按上门日期所属月份过滤
+  // 已收单 tab：按上门日期所属月份过滤
   if (tabIndex === 2 && month) {
     arr = arr.filter((o) => (o.visitDate || '').startsWith(month))
   }

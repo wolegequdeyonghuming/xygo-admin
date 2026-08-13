@@ -4,7 +4,7 @@
   "description": "收单员微信小程序（uni-app Vue3 + wot-design-uni）",
   "private": true,
   "scripts": {
-    "dev:h5": "uni",
+    "dev:h5": "uni --host",
     "build:h5": "uni build",
     "dev:mp-weixin": "uni -p mp-weixin",
     "build:mp-weixin": "uni build -p mp-weixin"

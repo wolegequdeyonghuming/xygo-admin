@@ -197,8 +197,6 @@ function chooseImage() {
       try {
         for (const path of res.tempFilePaths) {
           const data = await uploadFile(path)
-          // TODO: 调试完成后移除
-          console.log('upload resp:', data, 'resolved:', resolveUrl(data.url), 'temp:', path)
           attachments.value.push({ url: resolveUrl(data.url) || path, attachmentId: data.attachmentId })
         }
       } catch (e) {

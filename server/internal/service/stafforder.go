@@ -19,6 +19,12 @@ type IStaffOrder interface {
 	Collect(ctx context.Context, in *staffin.StaffOrderCollectInp) error
 	// AttachmentList 按附件ID列表获取附件 URL
 	AttachmentList(ctx context.Context, ids string) (*staffin.StaffAttachmentListModel, error)
+	// UserAgents 收单员列表（排单选人）
+	UserAgents(ctx context.Context) (*staffin.StaffUserAgentListModel, error)
+	// Schedule 排单派单（步骤2，收单员管理员）
+	Schedule(ctx context.Context, in *staffin.StaffOrderScheduleInp) error
+	// Complete 完工（步骤6，文员/管理员）
+	Complete(ctx context.Context, in *staffin.StaffOrderCompleteInp) error
 }
 
 var localStaffOrder IStaffOrder

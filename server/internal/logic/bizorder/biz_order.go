@@ -265,6 +265,11 @@ func (s *sBizOrder) StepEdit(ctx context.Context, in *adminin.BizOrderStepEditIn
 		return 0, permissionDenied("只能操作自己名下/自己录的订单")
 	}
 
+	// 收单员管理员：预约/收单仅限收单员为自己的单
+	if !canAgentManagerAppointCollect(ctx, role, cur.AgentId, in.Step) {
+		return 0, permissionDenied("收单员管理员仅可预约/收单收单员为自己的订单")
+	}
+
 	// 录单步骤：首次录入时校验未重复录入
 	if in.Step == consts.OrderStatusRecorded && cur.OrderStatus == consts.OrderStatusNotDeal && cur.CreatedBy != 0 {
 		return 0, permissionDenied("该订单已有人录入，不可重复录单")
@@ -311,6 +316,11 @@ func (s *sBizOrder) StepNext(ctx context.Context, id uint64) error {
 	}
 	if !canOperateOrder(ctx, role, cur.CreatedBy, cur.AgentId) {
 		return permissionDenied("只能操作自己名下/自己录的订单")
+	}
+
+	// 收单员管理员：预约/收单仅限收单员为自己的单
+	if !canAgentManagerAppointCollect(ctx, role, cur.AgentId, nextStep) {
+		return permissionDenied("收单员管理员仅可预约/收单收单员为自己的订单")
 	}
 
 	_, err = dao.BizOrder.Ctx(ctx).Where("id", id).Data(g.Map{"order_status": nextStep}).Update()

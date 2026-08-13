@@ -15,6 +15,14 @@
 			}
 		},
 		{
+			"path": "pages/order/query/index",
+			"style": {
+				"navigationStyle": "custom",
+				"enablePullDownRefresh": true,
+				"backgroundTextStyle": "dark"
+			}
+		},
+		{
 			"path": "pages/order/detail/index",
 			"style": {
 				"navigationStyle": "custom"
@@ -41,7 +49,7 @@
 	],
 	"globalStyle": {
 		"navigationBarTextStyle": "black",
-		"navigationBarTitleText": "收单员工作台",
+		"navigationBarTitleText": "移动业务平台",
 		"navigationBarBackgroundColor": "#ffffff",
 		"backgroundColor": "#f5f6f8"
 	}

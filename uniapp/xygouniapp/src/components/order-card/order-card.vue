@@ -16,6 +16,7 @@
         <text class="label">办理地址：</text>
         <text class="val link" @tap.stop="copyAddress(order.installAddress)">{{ order.installAddress || '-' }}</text>
       </view>
+      <view class="field"><text class="label">收单员：</text><text class="val">{{ order.agent_real_name || '-' }}</text></view>
     </view>
   </view>
 </template>

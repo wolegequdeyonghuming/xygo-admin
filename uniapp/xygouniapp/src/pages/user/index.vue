@@ -39,7 +39,7 @@ const nickname = computed(() => userInfo.value?.nickname || '')
 const avatarChar = computed(() => (name.value || '员').slice(0, 1))
 
 onShow(async () => {
-  tabActive.value = 1
+  tabActive.value = 2
   if (config.MOCK_PREVIEW && !store.isLoggedIn.value) {
     store.setToken('mock-token')
   }
@@ -65,7 +65,7 @@ function logout() {
 </script>
 
 <style scoped lang="scss">
-.profile-page { min-height: 100vh; background: #f5f6f8; padding: 24rpx 32rpx 130rpx; box-sizing: border-box; }
+.profile-page { min-height: 100vh; background: #f5f6f8; padding: 20px 32rpx 130rpx; box-sizing: border-box; }
 .profile-card {
   background: #ffffff; border-radius: 24rpx; padding: 40rpx; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
 }

@@ -62,6 +62,31 @@ type OrderCollectReq struct {
 
 type OrderCollectRes struct{}
 
+// OrderScheduleReq 排单（派单）请求
+type OrderScheduleReq struct {
+	g.Meta `path:"/order/schedule" method:"post" tags:"Staff" summary:"排单派单（步骤2）"`
+	staffin.StaffOrderScheduleInp
+}
+
+type OrderScheduleRes struct{}
+
+// OrderCompleteReq 完工请求
+type OrderCompleteReq struct {
+	g.Meta `path:"/order/complete" method:"post" tags:"Staff" summary:"完工（步骤6）"`
+	staffin.StaffOrderCompleteInp
+}
+
+type OrderCompleteRes struct{}
+
+// UserAgentListReq 收单员列表请求（排单选人）
+type UserAgentListReq struct {
+	g.Meta `path:"/user/agents" method:"get" tags:"Staff" summary:"收单员列表"`
+}
+
+type UserAgentListRes struct {
+	*staffin.StaffUserAgentListModel
+}
+
 // OrderDetailListReq 订单详细情况列表请求
 type OrderDetailListReq struct {
 	g.Meta `path:"/order/detailList" method:"get" tags:"Staff" summary:"订单详细情况列表"`
