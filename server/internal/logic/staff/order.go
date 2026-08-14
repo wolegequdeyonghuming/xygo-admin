@@ -22,6 +22,7 @@ import (
 	"xygo/internal/consts"
 	"xygo/internal/dao"
 	"xygo/internal/library/contexts"
+	"xygo/internal/logic/bizorder"
 	"xygo/internal/model/entity"
 	"xygo/internal/model/input/form"
 	adminin "xygo/internal/model/input/orderin"
@@ -110,6 +111,9 @@ func (s *sStaffOrder) List(ctx context.Context, in *staffin.StaffOrderListInp) (
 	}
 	if list == nil {
 		list = []adminin.BizOrderListItem{}
+	}
+	if err := bizorder.FillOrderListAttachments(ctx, list); err != nil {
+		return nil, err
 	}
 	return &adminin.BizOrderListModel{
 		List: list,
@@ -382,9 +386,12 @@ func (s *sStaffOrder) Complete(ctx context.Context, in *staffin.StaffOrderComple
 		}
 		return nil
 	default:
-		// 其他状态：仅管理员/超管允许直接补录完工
-		if role != consts.RoleAdmin && !consts.IsSuperRole(role) {
-			return gerror.New("仅管理员可对当前状态的订单直接完工")
+		// 其他状态：仅管理员/文员/超管允许补录完工，且订单必须已收单（状态 >= 已上门），未收单不可完工
+		if role != consts.RoleAdmin && role != consts.RoleDocumentary && !consts.IsSuperRole(role) {
+			return gerror.New("仅管理员/文员可对当前状态的订单直接完工")
+		}
+		if order.OrderStatus < consts.OrderStatusVisited {
+			return gerror.New("未收单订单不能完工")
 		}
 		_, err = dao.BizOrder.Ctx(ctx).Where("id", in.Id).Data(g.Map{
 			"broadband_account": in.BroadbandAccount,

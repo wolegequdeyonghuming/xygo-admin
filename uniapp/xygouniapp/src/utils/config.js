@@ -1,6 +1,12 @@
-// 默认同源（H5 走 nginx 反向代理；小程序端在下方用环境变量覆盖）
+// 默认同源（H5 开发态走 vite 代理；H5 正式/跨域与小程序端在下方用环境变量覆盖）
 let BASE_URL = ''
 let ASSET_URL = ''
+
+// #ifdef H5
+// H5 跨域调用统一后端网关（VITE_H5_API_BASE，见 .env / .env.production；dev 下为空走 vite 代理同源）
+BASE_URL = import.meta.env.VITE_H5_API_BASE || ''
+ASSET_URL = import.meta.env.VITE_H5_API_BASE || ''
+// #endif
 
 // #ifndef H5
 // 小程序端：API 地址由构建环境变量 VITE_API_BASE 注入（见 .env / .env.production），默认本机调试

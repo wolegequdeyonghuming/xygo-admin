@@ -25,19 +25,27 @@ defineEmits(['primary-tap', 'ghost-tap'])
 .btn {
   flex: 1;
   height: 96rpx;
-  border-radius: 20rpx;
+  border-radius: 24rpx;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 32rpx;
   font-weight: 700;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+.btn:active {
+  transform: scale(0.97);
 }
 .primary {
-  background: #336fff;
+  background: #2563eb;
   color: #ffffff;
+  box-shadow: 0 8rpx 20rpx rgba(37, 99, 235, 0.25);
+}
+.primary:active {
+  background: #1d4ed8;
 }
 .ghost {
-  background: #f5f7fa;
-  color: #333333;
+  background: #eff2f7;
+  color: #111827;
 }
 </style>

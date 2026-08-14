@@ -1,23 +1,37 @@
 <template>
   <view class="profile-page">
-    <!-- 用户信息卡 -->
-    <view class="profile-card">
-      <view class="head">
+    <!-- 浅蓝舱头 -->
+    <view class="deck-head" :style="{ paddingTop: headPad + 'rpx' }">
+      <view class="head-glow"></view>
+      <view class="profile-head">
         <view class="avatar">{{ avatarChar }}</view>
         <view class="info">
           <text class="username">{{ name }}</text>
-          <text class="nickname">{{ nickname }}</text>
+          <text class="role">{{ postName }}</text>
         </view>
-      </view>
-      <view class="fields">
-        <view class="field"><text class="label">手机号：</text><text class="val">{{ userInfo?.mobile || '-' }}</text></view>
-        <view class="field"><text class="label">岗位：</text><text class="val">{{ userInfo?.postName || '-' }}</text></view>
-        <view class="field"><text class="label">部门：</text><text class="val">{{ userInfo?.deptName || '-' }}</text></view>
       </view>
     </view>
 
-    <view class="logout">
-      <bottom-action :primary="'退出登录'" @primary-tap="logout" />
+    <view class="content">
+      <!-- 信息卡 -->
+      <view class="fields-card">
+        <view class="field-row">
+          <text class="label">手机号</text>
+          <text class="val">{{ userInfo?.mobile || '-' }}</text>
+        </view>
+        <view class="field-row">
+          <text class="label">岗位</text>
+          <text class="val">{{ userInfo?.postName || '-' }}</text>
+        </view>
+        <view class="field-row">
+          <text class="label">部门</text>
+          <text class="val">{{ userInfo?.deptName || '-' }}</text>
+        </view>
+      </view>
+
+      <view class="logout">
+        <bottom-action :primary="'退出登录'" @primary-tap="logout" />
+      </view>
     </view>
 
     <tab-bar />
@@ -30,12 +44,15 @@ import { onShow } from '@dcloudio/uni-app'
 import { useStaffStore } from '@/store/staff'
 import config from '@/utils/config'
 import { tabActive } from '@/utils/tab'
+import { getStatusBarHeightRpx } from '@/utils/system'
 
 const store = useStaffStore()
 const userInfo = ref(null)
+const headPad = ref(getStatusBarHeightRpx() + 24)
 
 const name = computed(() => userInfo.value?.realName || userInfo.value?.nickname || '')
 const nickname = computed(() => userInfo.value?.nickname || '')
+const postName = computed(() => userInfo.value?.postName || userInfo.value?.roleName || '')
 const avatarChar = computed(() => (name.value || '员').slice(0, 1))
 
 onShow(async () => {
@@ -65,23 +82,101 @@ function logout() {
 </script>
 
 <style scoped lang="scss">
-.profile-page { min-height: 100vh; background: #f5f6f8; padding: 20px 32rpx 130rpx; box-sizing: border-box; }
-.profile-card {
-  background: #ffffff; border-radius: 24rpx; padding: 40rpx; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
+.profile-page {
+  min-height: 100vh;
+  background: #f4f6fa;
 }
-.head { display: flex; align-items: center; gap: 32rpx; }
+
+/* ===== 浅蓝舱头 ===== */
+.deck-head {
+  position: relative;
+  overflow: hidden;
+  padding-left: 32rpx;
+  padding-right: 32rpx;
+  padding-bottom: 48rpx;
+  background: linear-gradient(160deg, #f2f6fe 0%, #e7eefb 100%);
+  border-bottom-left-radius: 40rpx;
+  border-bottom-right-radius: 40rpx;
+}
+.head-glow {
+  position: absolute;
+  right: -80rpx;
+  top: -100rpx;
+  width: 280rpx;
+  height: 280rpx;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(37, 99, 235, 0.14) 0%, rgba(37, 99, 235, 0) 70%);
+  pointer-events: none;
+}
+.profile-head {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+}
 .avatar {
-  width: 128rpx; height: 128rpx; border-radius: 50%; background: #e0e0e0; color: #333333;
-  display: flex; align-items: center; justify-content: center; font-size: 44rpx; font-weight: 700; flex-shrink: 0;
+  width: 112rpx;
+  height: 112rpx;
+  border-radius: 50%;
+  background: #2563eb;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 44rpx;
+  font-weight: 800;
+  flex-shrink: 0;
+  box-shadow: 0 8rpx 24rpx rgba(37, 99, 235, 0.3);
 }
-.info { display: flex; flex-direction: column; }
-.username { font-size: 32rpx; font-weight: 700; color: #333333; }
-.nickname { font-size: 28rpx; color: #8b8c8f; margin-top: 8rpx; }
+.info {
+  display: flex;
+  flex-direction: column;
+}
+.username {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #111827;
+}
+.role {
+  margin-top: 6rpx;
+  font-size: 24rpx;
+  color: #4b5563;
+}
 
-.fields { margin-top: 40rpx; display: flex; flex-direction: column; gap: 32rpx; }
-.field { display: flex; align-items: baseline; font-size: 28rpx; }
-.label { color: #8b8c8f; flex-shrink: 0; }
-.val { color: #8b8c8f; word-break: break-all; }
-
-.logout { padding-top: 40rpx; }
+/* ===== 内容 ===== */
+.content {
+  padding: 32rpx 32rpx 220rpx;
+  box-sizing: border-box;
+}
+.fields-card {
+  background: #ffffff;
+  border-radius: 28rpx;
+  padding: 8rpx 32rpx;
+  border: 1rpx solid rgba(17, 24, 39, 0.06);
+  box-shadow: 0 6rpx 24rpx rgba(17, 24, 39, 0.06);
+}
+.field-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 28rpx 0;
+  font-size: 28rpx;
+  border-bottom: 1rpx solid rgba(17, 24, 39, 0.05);
+}
+.field-row:last-child {
+  border-bottom: none;
+}
+.label {
+  color: #9ca3af;
+  flex-shrink: 0;
+}
+.val {
+  color: #111827;
+  font-weight: 400;
+  text-align: right;
+  word-break: break-all;
+}
+.logout {
+  padding-top: 32rpx;
+}
 </style>

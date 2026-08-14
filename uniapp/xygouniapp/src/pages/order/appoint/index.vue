@@ -110,16 +110,17 @@ async function submit() {
 <style scoped lang="scss">
 .form-page {
   min-height: 100vh;
-  background: #f5f6f8;
+  background: #f4f6fa;
   padding: 24rpx 32rpx;
   box-sizing: border-box;
 }
 .info-card {
   background: #ffffff;
-  border-radius: 24rpx;
+  border-radius: 28rpx;
   padding: 32rpx;
-  margin-bottom: 40rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+  margin-bottom: 32rpx;
+  border: 1rpx solid rgba(17, 24, 39, 0.06);
+  box-shadow: 0 6rpx 24rpx rgba(17, 24, 39, 0.06);
 }
 .card-head {
   display: flex;
@@ -129,8 +130,8 @@ async function submit() {
 }
 .business {
   font-size: 32rpx;
-  font-weight: 700;
-  color: #333333;
+  font-weight: 600;
+  color: #111827;
 }
 .field {
   display: flex;
@@ -139,36 +140,46 @@ async function submit() {
   line-height: 1.4;
   margin-bottom: 24rpx;
 }
-.label { color: #8b8c8f; flex-shrink: 0; }
-.val { color: #8b8c8f; word-break: break-all; }
-.val.link { color: #336fff; }
+.label { color: #9ca3af; flex-shrink: 0; }
+.val { color: #4b5563; word-break: break-all; }
+.val.link { color: #2563eb; }
 
 .edit-card {
   background: #ffffff;
-  border-radius: 24rpx;
+  border-radius: 28rpx;
   padding: 32rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+  border: 1rpx solid rgba(17, 24, 39, 0.06);
+  box-shadow: 0 6rpx 24rpx rgba(17, 24, 39, 0.06);
 }
 .date-cell {
   height: 80rpx;
   display: flex;
   align-items: center;
   padding: 0 24rpx;
-  background: #f8f9fa;
+  background: #f4f6fa;
   border-radius: 16rpx;
   margin-bottom: 24rpx;
 }
-.date-text { font-size: 28rpx; color: #333333; }
-.date-placeholder { font-size: 28rpx; color: #c0c4cc; }
+.date-text { font-size: 28rpx; color: #111827; }
+.date-placeholder { font-size: 28rpx; color: #b9bec6; }
 .edit-title {
-  display: block;
-  font-size: 32rpx;
+  display: flex;
+  align-items: center;
+  gap: 14rpx;
+  font-size: 30rpx;
   font-weight: 700;
-  color: #333333;
+  color: #111827;
   margin: 16rpx 0 24rpx;
 }
+.edit-title::before {
+  content: '';
+  width: 8rpx;
+  height: 28rpx;
+  border-radius: 4rpx;
+  background: #2563eb;
+}
 :deep(.edit-input) {
-  background: #f8f9fa;
+  background: #f4f6fa;
   border-radius: 16rpx;
   padding: 0 24rpx;
 }
@@ -176,7 +187,7 @@ async function submit() {
 .edit-textarea {
   width: 100%;
   height: 200rpx;
-  background: #f8f9fa;
+  background: #f4f6fa;
   border-radius: 16rpx;
   padding: 20rpx;
   font-size: 28rpx;

@@ -1,14 +1,15 @@
 <template>
-  <view class="tab-bar">
+  <view class="dock">
+    <view class="pill" :style="{ transform: `translateX(${selected * 100}%)` }"></view>
     <view
       v-for="(item, i) in tabs"
       :key="i"
-      class="tab-item"
+      class="dock-item"
       :class="{ active: selected === i }"
       @tap="onTap(i)"
     >
-      <wd-icon :name="item.icon" :size="24" :color="selected === i ? '#336FFF' : '#999999'" />
-      <text class="tab-title" :class="{ active: selected === i }">{{ item.title }}</text>
+      <wd-icon :name="item.icon" :size="22" :color="selected === i ? '#111827' : '#9CA3AF'" />
+      <text class="dock-title" :class="{ active: selected === i }">{{ item.title }}</text>
     </view>
   </view>
 </template>
@@ -39,33 +40,49 @@ function onTap(i) {
 </script>
 
 <style scoped lang="scss">
-.tab-bar {
+.dock {
   position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  left: 32rpx;
+  right: 32rpx;
+  bottom: calc(24rpx + env(safe-area-inset-bottom));
   z-index: 1000;
   display: flex;
-  height: 100rpx; /* 50px */
-  padding-bottom: env(safe-area-inset-bottom);
+  padding: 16rpx 0 calc(16rpx + env(safe-area-inset-bottom));
   background: #ffffff;
-  box-shadow: 0 -2rpx 12rpx rgba(0, 0, 0, 0.05);
+  border-radius: 56rpx;
+  border: 1rpx solid rgba(17, 24, 39, 0.08);
+  box-shadow: 0 12rpx 40rpx rgba(17, 24, 39, 0.12);
 }
-.tab-item {
+.pill {
+  position: absolute;
+  left: 0;
+  top: 16rpx;
+  z-index: 0;
+  width: 33.3333%;
+  height: 88rpx;
+  border-radius: 44rpx;
+  background: #e8effd;
+  transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.dock-item {
+  position: relative;
+  z-index: 1;
   flex: 1;
   display: flex;
-  flex-direction: row; /* 图标与文字横向排列 */
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 12rpx;
+  gap: 6rpx;
+  height: 88rpx;
 }
-.tab-title {
-  font-size: 32rpx; /* 16px */
-  color: #999999;
+.dock-title {
+  font-size: 22rpx;
+  color: #9ca3af;
   line-height: 1;
+  transition: color 0.2s;
 }
-.tab-title.active {
-  color: #336fff;
+.dock-title.active {
+  color: #111827;
   font-weight: 700;
 }
 </style>

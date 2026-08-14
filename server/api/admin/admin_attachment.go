@@ -27,6 +27,17 @@ type AttachmentListRes struct {
 	*adminin.AttachmentListModel
 }
 
+// ===================== 按ID列表获取附件 =====================
+
+type AttachmentListByIdsReq struct {
+	g.Meta `path:"/admin/attachment/listByIds" method:"get" tags:"AdminAttachment" summary:"按ID列表获取附件"`
+	Ids    string `json:"ids" dc:"附件ID列表（逗号分隔）"`
+}
+
+type AttachmentListByIdsRes struct {
+	*adminin.AttachmentListModel
+}
+
 // ===================== 删除附件 =====================
 
 type AttachmentDeleteReq struct {

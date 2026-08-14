@@ -5,6 +5,7 @@ import (
 	"context"
 	"io"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"image"
@@ -189,6 +190,51 @@ func (c *ControllerV1) AttachmentList(ctx context.Context, req *api.AttachmentLi
 			Total:    total,
 		},
 	}
+	return
+}
+
+// AttachmentListByIds 按附件ID列表（逗号分隔）获取附件信息
+func (c *ControllerV1) AttachmentListByIds(ctx context.Context, req *api.AttachmentListByIdsReq) (res *api.AttachmentListByIdsRes, err error) {
+	idList := make([]int64, 0)
+	for _, p := range strings.Split(req.Ids, ",") {
+		p = strings.TrimSpace(p)
+		if p == "" {
+			continue
+		}
+		if v, err := strconv.ParseInt(p, 10, 64); err == nil {
+			idList = append(idList, v)
+		}
+	}
+	items := make([]adminin.AttachmentListItem, 0, len(idList))
+	if len(idList) > 0 {
+		var list []entity.SysAttachment
+		if err = dao.SysAttachment.Ctx(ctx).
+			WhereIn(dao.SysAttachment.Columns().Id, idList).
+			OrderAsc(dao.SysAttachment.Columns().Id).
+			Scan(&list); err != nil {
+			return nil, err
+		}
+		for _, it := range list {
+			items = append(items, adminin.AttachmentListItem{
+				Id:         it.Id,
+				Topic:      it.Topic,
+				UserId:     it.UserId,
+				Url:        it.Url,
+				Name:       it.Name,
+				Size:       it.Size,
+				Mimetype:   it.Mimetype,
+				Storage:    it.Storage,
+				Sha1:       it.Sha1,
+				Quote:      uint(it.Quote),
+				Width:      uint(it.Width),
+				Height:     uint(it.Height),
+				CreateTime: uint(it.CreateTime),
+				UpdateTime: uint(it.UpdateTime),
+			})
+		}
+	}
+	res = new(api.AttachmentListByIdsRes)
+	res.AttachmentListModel = &adminin.AttachmentListModel{List: items}
 	return
 }
 

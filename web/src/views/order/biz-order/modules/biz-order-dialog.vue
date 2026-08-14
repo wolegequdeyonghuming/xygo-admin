@@ -215,7 +215,7 @@
         </ElCol>
         <ElCol :span="24">
           <ElFormItem label="附件" prop="attachmentId">
-            <ArtFileSelector v-model="formData.attachmentId" :max-number="5" />
+            <ArtFileSelector v-model="formData.attachmentId" :max-number="5" value-type="id" />
           </ElFormItem>
         </ElCol>
       </ElRow>

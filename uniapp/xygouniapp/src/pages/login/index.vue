@@ -1,12 +1,17 @@
 <template>
   <view class="login-page">
+    <view class="bg-glow g1"></view>
+    <view class="bg-glow g2"></view>
+
     <view class="logo-area">
-      <image class="logo" src="/static/logo.png" mode="aspectFit"></image>
+      <view class="logo-box">
+        <image class="logo" src="/static/logo.png" mode="aspectFit"></image>
+      </view>
       <text class="app-name">{{ siteName || '移动业务平台' }}</text>
-      <text class="app-desc">账号密码登录</text>
+      <text class="app-desc">账号密码登录 · 外勤收单工作台</text>
     </view>
 
-    <view class="form-area">
+    <view class="form-card">
       <view class="field">
         <text class="field-label">账号</text>
         <wd-input v-model="username" placeholder="请输入收单员账号" clearable custom-class="form-input" />
@@ -17,13 +22,6 @@
       </view>
 
       <button class="login-btn" :loading="loading" @tap="handleLogin">登 录</button>
-    </view>
-
-    <view class="agreement">
-      <text class="agree-text">登录即表示同意</text>
-      <text class="agree-link">《用户协议》</text>
-      <text class="agree-text">和</text>
-      <text class="agree-link">《隐私政策》</text>
     </view>
   </view>
 </template>
@@ -85,52 +83,88 @@ async function handleLogin() {
   display: flex;
   flex-direction: column;
   align-items: center;
-  background: linear-gradient(180deg, #e8f0fe 0%, #f5f6f8 55%);
+  background: linear-gradient(180deg, #e7eefb 0%, #f4f6fa 60%);
   padding-top: 20px;
   box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
+}
+.bg-glow {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+}
+.bg-glow.g1 {
+  width: 480rpx;
+  height: 480rpx;
+  right: -160rpx;
+  top: -120rpx;
+  background: radial-gradient(circle, rgba(37, 99, 235, 0.18) 0%, rgba(37, 99, 235, 0) 70%);
+}
+.bg-glow.g2 {
+  width: 400rpx;
+  height: 400rpx;
+  left: -160rpx;
+  bottom: 120rpx;
+  background: radial-gradient(circle, rgba(37, 99, 235, 0.1) 0%, rgba(37, 99, 235, 0) 70%);
 }
 
 .logo-area {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   margin-top: 120rpx;
 }
+.logo-box {
+  width: 176rpx;
+  height: 176rpx;
+  border-radius: 40rpx;
+  background: #ffffff;
+  box-shadow: 0 16rpx 40rpx rgba(37, 99, 235, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 .logo {
-  width: 160rpx;
-  height: 160rpx;
-  border-radius: 32rpx;
+  width: 128rpx;
+  height: 128rpx;
 }
 .app-name {
   font-size: 44rpx;
-  font-weight: 700;
-  color: #1a1a1a;
-  margin-top: 32rpx;
+  font-weight: 800;
+  color: #111827;
+  margin-top: 28rpx;
 }
 .app-desc {
-  font-size: 26rpx;
-  color: #8b8c8f;
+  font-size: 24rpx;
+  color: #4b5563;
   margin-top: 12rpx;
 }
 
-.form-area {
-  width: 100%;
-  padding: 0 80rpx;
-  margin-top: 100rpx;
+.form-card {
+  position: relative;
+  width: calc(100% - 96rpx);
+  background: #ffffff;
+  border-radius: 32rpx;
+  border: 1rpx solid rgba(17, 24, 39, 0.06);
+  box-shadow: 0 16rpx 48rpx rgba(37, 99, 235, 0.14);
+  padding: 40rpx 36rpx;
+  margin-top: 64rpx;
   box-sizing: border-box;
 }
 .field {
-  margin-bottom: 40rpx;
+  margin-bottom: 32rpx;
 }
 .field-label {
   display: block;
-  font-size: 28rpx;
-  color: #333333;
-  font-weight: 600;
-  margin-bottom: 16rpx;
+  font-size: 26rpx;
+  color: #4b5563;
+  font-weight: 500;
+  margin-bottom: 14rpx;
 }
 :deep(.form-input) {
-  background: #ffffff;
+  background: #f4f6fa;
   border-radius: 16rpx;
   padding: 0 24rpx;
 }
@@ -139,34 +173,21 @@ async function handleLogin() {
   width: 100%;
   height: 96rpx;
   line-height: 96rpx;
-  border-radius: 48rpx;
+  border-radius: 24rpx;
   font-size: 32rpx;
   font-weight: 700;
   letter-spacing: 2rpx;
   border: none;
-  background: #336fff;
+  background: #2563eb;
   color: #ffffff;
-  margin-top: 60rpx;
+  margin-top: 40rpx;
+  box-shadow: 0 12rpx 28rpx rgba(37, 99, 235, 0.3);
 }
 .login-btn::after {
   border: none;
 }
 .login-btn:active {
-  background: #2a5bd6;
+  background: #1d4ed8;
 }
 
-.agreement {
-  position: fixed;
-  bottom: 60rpx;
-  display: flex;
-  align-items: center;
-}
-.agree-text {
-  font-size: 22rpx;
-  color: #999;
-}
-.agree-link {
-  font-size: 22rpx;
-  color: #336fff;
-}
 </style>

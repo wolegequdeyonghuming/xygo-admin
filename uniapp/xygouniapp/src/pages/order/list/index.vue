@@ -1,19 +1,28 @@
 <template>
   <view class="home-page">
-    <!-- 顶部栏 -->
-    <view class="top-bar">
-      <text class="sys-name">{{ siteName || config.SYS_NAME }}</text>
-      <view class="user-info" @tap="goUser">
-        <image v-if="avatarUrl" :src="avatarUrl" class="avatar-img" mode="aspectFill" />
-        <view v-else class="avatar">{{ avatarChar }}</view>
-        <text class="nickname">{{ nickname }}</text>
+    <!-- 浅蓝舱头 -->
+    <view class="deck-head" :style="{ paddingTop: headPad + 'rpx' }">
+      <view class="head-grid"></view>
+      <view class="head-glow"></view>
+      <view class="user-row" @tap="goUser">
+        <view class="avatar-wrap">
+          <image v-if="avatarUrl" :src="avatarUrl" class="avatar-img" mode="aspectFill" />
+          <view v-else class="avatar">{{ avatarChar }}</view>
+        </view>
+        <view class="user-meta">
+          <text class="nickname">{{ displayName }}</text>
+          <text class="role">{{ roleName }}</text>
+        </view>
+        <wd-icon name="arrow-right" size="14" color="#9CA3AF" />
       </view>
     </view>
 
-    <view class="content">
-      <!-- 统计卡：点击切换列表状态 -->
+    <!-- 统计舱 -->
+    <view class="stat-wrap">
       <stat-cards :items="statItems" :active-index="activeTab" @change="switchTab" />
+    </view>
 
+    <view class="content">
       <!-- 列表标题（已处理 tab 右侧显示月份选择器） -->
       <view class="list-title-row">
         <text class="list-title">{{ currentTitle }}</text>
@@ -29,10 +38,17 @@
 
       <!-- 订单列表 -->
       <view v-if="list.length" class="order-list">
-        <order-card v-for="order in list" :key="order.id" :order="order" @select="goDetail" />
+        <order-card v-for="(order, i) in list" :key="order.id" :order="order" :index="i" @select="goDetail" />
       </view>
       <view v-else class="empty">
+        <view class="radar">
+          <view class="radar-ring r1"></view>
+          <view class="radar-ring r2"></view>
+          <view class="radar-ring r3"></view>
+          <view class="radar-dot"></view>
+        </view>
         <text class="empty-text">暂无订单</text>
+        <text class="empty-sub">下拉刷新试试</text>
       </view>
     </view>
 
@@ -44,11 +60,10 @@
 import { ref, computed, watch } from 'vue'
 import { onLoad, onShow, onPullDownRefresh, onReachBottom } from '@dcloudio/uni-app'
 import { useStaffStore } from '@/store/staff'
-import config from '@/utils/config'
 import { tabActive } from '@/utils/tab'
 import { setCurrentOrder } from '@/utils/orderBus'
-import { siteName, loadSiteName } from '@/utils/site'
 import { getOrderList, getOrderStat } from '@/api/staff'
+import { getStatusBarHeightRpx } from '@/utils/system'
 
 const store = useStaffStore()
 const activeTab = ref(0)
@@ -60,12 +75,14 @@ const loading = ref(false)
 const month = ref(defaultMonth())
 const monthTs = ref(Date.now())
 
+const headPad = ref(getStatusBarHeightRpx() + 24)
+
 const stat = ref({ todayRecorded: 0, recorded: 0, pendingSchedule: 0, todo: 0, today: 0, done: 0 })
 
-const RED = '#D92400'
-const GREEN = '#299A0C'
-const BLUE = '#1F61FF'
-const ORANGE = '#FE8B00'
+const RED = '#E5484D'
+const GREEN = '#30A46C'
+const BLUE = '#2563EB'
+const ORANGE = '#E8930C'
 
 // 按角色生成首页统计 tab（label/color/statKey/statuses/mode/title）
 const tabs = computed(() => {
@@ -102,6 +119,7 @@ const nickname = computed(() => store.userInfo.value?.nickname || store.userInfo
 const displayName = computed(() => store.userInfo.value?.realName || store.userInfo.value?.nickname || '')
 const avatarUrl = computed(() => store.userInfo.value?.avatar || '')
 const avatarChar = computed(() => (displayName.value || '员').slice(0, 1))
+const roleName = computed(() => store.userInfo.value?.roleName || store.userInfo.value?.postName || '')
 const currentTitle = computed(() => (tabs.value[activeTab.value] || {}).title || '')
 const statItems = computed(() => tabs.value.map((t) => ({ label: t.label, color: t.color, value: stat.value[t.statKey] ?? 0 })))
 const showMonthPicker = computed(() => (tabs.value[activeTab.value] || {}).mode === 'month')
@@ -183,7 +201,6 @@ async function fetchList(reset) {
 }
 
 onLoad(() => {
-  loadSiteName()
   // 不允许游客登录
   if (!store.isLoggedIn.value) {
     uni.reLaunch({ url: '/pages/login/index' })
@@ -243,82 +260,188 @@ onReachBottom(() => {
 <style scoped lang="scss">
 .home-page {
   min-height: 100vh;
-  background: #f5f6f8;
+  background: #f4f6fa;
 }
-.top-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding-top: 20px;
+
+/* ===== 浅蓝舱头 ===== */
+.deck-head {
+  position: relative;
+  overflow: hidden;
   padding-left: 32rpx;
   padding-right: 32rpx;
-  padding-bottom: 24rpx;
+  padding-bottom: 48rpx;
+  background: linear-gradient(160deg, #f2f6fe 0%, #e7eefb 55%, #e2ebfa 100%);
+  border-bottom-left-radius: 40rpx;
+  border-bottom-right-radius: 40rpx;
 }
-.sys-name {
-  font-size: 32rpx;
-  font-weight: 700;
-  color: #333333;
+.head-grid {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background-image: linear-gradient(rgba(37, 99, 235, 0.05) 1rpx, transparent 1rpx),
+    linear-gradient(90deg, rgba(37, 99, 235, 0.05) 1rpx, transparent 1rpx);
+  background-size: 40rpx 40rpx;
+  pointer-events: none;
 }
-.user-info {
+.head-glow {
+  position: absolute;
+  right: -80rpx;
+  top: -100rpx;
+  width: 280rpx;
+  height: 280rpx;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(37, 99, 235, 0.14) 0%, rgba(37, 99, 235, 0) 70%);
+  pointer-events: none;
+}
+.user-row {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 16rpx;
+  gap: 20rpx;
 }
-.nickname {
-  font-size: 24rpx;
-  font-weight: 700;
-  color: #333333;
+.avatar,
+.avatar-img {
+  width: 76rpx;
+  height: 76rpx;
+  border-radius: 50%;
+  flex-shrink: 0;
 }
 .avatar {
-  width: 72rpx;
-  height: 72rpx;
-  border-radius: 50%;
-  background: #e0e0e0;
-  color: #333333;
   display: flex;
   align-items: center;
   justify-content: center;
+  background: #2563eb;
+  color: #ffffff;
   font-size: 28rpx;
-  font-weight: 700;
+  font-weight: 800;
 }
 .avatar-img {
-  width: 72rpx;
-  height: 72rpx;
-  border-radius: 50%;
+  border: 2rpx solid #ffffff;
+  box-shadow: 0 4rpx 12rpx rgba(37, 99, 235, 0.2);
 }
+.user-meta {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.nickname {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #111827;
+}
+.role {
+  margin-top: 4rpx;
+  font-size: 22rpx;
+  color: #4b5563;
+}
+
+/* ===== 统计舱 ===== */
+.stat-wrap {
+  position: relative;
+  z-index: 2;
+  margin-top: -36rpx;
+  padding: 0 32rpx;
+}
+
+/* ===== 内容区 ===== */
 .content {
-  padding: 0 32rpx 130rpx;
+  padding: 32rpx 32rpx 220rpx;
 }
 .list-title-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin: 32rpx 0 24rpx;
+  margin-bottom: 24rpx;
 }
 .list-title {
   font-size: 32rpx;
   font-weight: 700;
-  color: #333333;
+  color: #111827;
 }
 .month-picker {
-  background: #f8f9fa;
-  border-radius: 24rpx;
-  padding: 16rpx 24rpx;
+  background: #e8effd;
+  border-radius: 999rpx;
+  padding: 14rpx 26rpx;
 }
 .month-text {
-  font-size: 28rpx;
-  font-weight: 700;
-  color: #333333;
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #2563eb;
 }
 .order-list {
   margin-top: 8rpx;
 }
+
+/* ===== 空态 ===== */
 .empty {
-  padding: 120rpx 0;
+  padding: 100rpx 0;
   text-align: center;
 }
+.radar {
+  position: relative;
+  width: 140rpx;
+  height: 140rpx;
+  margin: 0 auto 28rpx;
+}
+.radar-ring {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  border-radius: 50%;
+  border: 2rpx dashed rgba(37, 99, 235, 0.35);
+  transform: translate(-50%, -50%);
+}
+.radar-ring.r1 {
+  width: 140rpx;
+  height: 140rpx;
+}
+.radar-ring.r2 {
+  width: 96rpx;
+  height: 96rpx;
+  border-style: solid;
+  border-color: rgba(37, 99, 235, 0.16);
+}
+.radar-ring.r3 {
+  width: 52rpx;
+  height: 52rpx;
+  animation: ringPulse 1.6s ease-in-out infinite;
+}
+.radar-dot {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 50%;
+  background: #2563eb;
+  box-shadow: 0 0 24rpx rgba(37, 99, 235, 0.55);
+  transform: translate(-50%, -50%);
+}
 .empty-text {
-  color: #8b8c8f;
-  font-size: 28rpx;
+  display: block;
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #4b5563;
+}
+.empty-sub {
+  display: block;
+  margin-top: 10rpx;
+  font-size: 24rpx;
+  color: #9ca3af;
+}
+
+@keyframes ringPulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    opacity: 0.4;
+    transform: translate(-50%, -50%) scale(0.8);
+  }
 }
 </style>

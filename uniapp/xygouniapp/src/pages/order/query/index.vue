@@ -1,5 +1,8 @@
 <template>
   <view class="query-page">
+    <!-- 状态栏 spacer -->
+    <view class="sb-spacer" :style="{ height: headPad + 'rpx' }"></view>
+
     <view class="content">
       <!-- 默认查询行：状态选择器 + 客户姓名输入框 + 筛选按钮 -->
       <view class="search-row">
@@ -10,7 +13,7 @@
         </wd-picker>
         <wd-input v-model="customerName" placeholder="客户姓名" clearable custom-class="name-input" @update:modelValue="onNameChange" />
         <view class="filter-btn" @tap="showFilter = true">
-          <wd-icon name="filter" size="18" color="#336FFF" />
+          <wd-icon name="filter" size="18" color="#FFFFFF" />
         </view>
       </view>
 
@@ -21,10 +24,17 @@
 
       <!-- 订单列表 -->
       <view v-if="list.length" class="order-list">
-        <order-card v-for="order in list" :key="order.id" :order="order" @select="goDetail" />
+        <order-card v-for="(order, i) in list" :key="order.id" :order="order" :index="i" @select="goDetail" />
       </view>
       <view v-else class="empty">
+        <view class="radar">
+          <view class="radar-ring r1"></view>
+          <view class="radar-ring r2"></view>
+          <view class="radar-ring r3"></view>
+          <view class="radar-dot"></view>
+        </view>
         <text class="empty-text">暂无订单</text>
+        <text class="empty-sub">换个筛选条件试试</text>
       </view>
     </view>
 
@@ -97,8 +107,10 @@ import { useStaffStore } from '@/store/staff'
 import { tabActive } from '@/utils/tab'
 import { setCurrentOrder } from '@/utils/orderBus'
 import { getOrderList, getDictData } from '@/api/staff'
+import { getStatusBarHeightRpx } from '@/utils/system'
 
 const store = useStaffStore()
+const headPad = ref(getStatusBarHeightRpx() + 24)
 const page = ref(1)
 const pageSize = 20
 const list = ref([])
@@ -282,13 +294,17 @@ onReachBottom(() => {
 <style scoped lang="scss">
 .query-page {
   min-height: 100vh;
-  background: #f5f6f8;
+  background: #f4f6fa;
 }
+.sb-spacer {
+  width: 100%;
+}
+
 .content {
-  padding-top: 20px;
+  padding-top: 24rpx;
   padding-left: 32rpx;
   padding-right: 32rpx;
-  padding-bottom: 130rpx;
+  padding-bottom: 220rpx;
   box-sizing: border-box;
 }
 .search-row {
@@ -308,10 +324,12 @@ onReachBottom(() => {
   padding: 0 20rpx;
   background: #ffffff;
   border-radius: 16rpx;
+  border: 1rpx solid rgba(17, 24, 39, 0.06);
+  box-shadow: 0 4rpx 16rpx rgba(17, 24, 39, 0.05);
 }
 .status-text {
   font-size: 28rpx;
-  color: #333333;
+  color: #111827;
 }
 :deep(.name-input) {
   flex: 1;
@@ -319,6 +337,8 @@ onReachBottom(() => {
   box-sizing: border-box;
   background: #ffffff;
   border-radius: 16rpx;
+  border: 1rpx solid rgba(17, 24, 39, 0.06);
+  box-shadow: 0 4rpx 16rpx rgba(17, 24, 39, 0.05);
   padding: 0 24rpx;
 }
 :deep(.name-input .wd-input__inner) {
@@ -330,32 +350,92 @@ onReachBottom(() => {
   width: 96rpx;
   height: 80rpx;
   border-radius: 16rpx;
-  background: #ffffff;
+  background: #2563eb;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  box-shadow: 0 8rpx 20rpx rgba(37, 99, 235, 0.25);
 }
 .filter-tip {
-  background: #e6f0ff;
+  background: #e8effd;
   border-radius: 12rpx;
   padding: 16rpx 24rpx;
   margin-bottom: 24rpx;
 }
 .filter-tip-text {
   font-size: 26rpx;
-  color: #336fff;
+  color: #2563eb;
 }
 .order-list {
   margin-top: 8rpx;
 }
 .empty {
-  padding: 120rpx 0;
+  padding: 100rpx 0;
   text-align: center;
 }
+.radar {
+  position: relative;
+  width: 140rpx;
+  height: 140rpx;
+  margin: 0 auto 28rpx;
+}
+.radar-ring {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  border-radius: 50%;
+  border: 2rpx dashed rgba(37, 99, 235, 0.35);
+  transform: translate(-50%, -50%);
+}
+.radar-ring.r1 {
+  width: 140rpx;
+  height: 140rpx;
+}
+.radar-ring.r2 {
+  width: 96rpx;
+  height: 96rpx;
+  border-style: solid;
+  border-color: rgba(37, 99, 235, 0.16);
+}
+.radar-ring.r3 {
+  width: 52rpx;
+  height: 52rpx;
+  animation: ringPulse 1.6s ease-in-out infinite;
+}
+.radar-dot {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 50%;
+  background: #2563eb;
+  box-shadow: 0 0 24rpx rgba(37, 99, 235, 0.55);
+  transform: translate(-50%, -50%);
+}
 .empty-text {
-  color: #8b8c8f;
-  font-size: 28rpx;
+  display: block;
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #4b5563;
+}
+.empty-sub {
+  display: block;
+  margin-top: 10rpx;
+  font-size: 24rpx;
+  color: #9ca3af;
+}
+@keyframes ringPulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    opacity: 0.4;
+    transform: translate(-50%, -50%) scale(0.8);
+  }
 }
 
 .filter-panel {
@@ -367,14 +447,14 @@ onReachBottom(() => {
   display: block;
   font-size: 32rpx;
   font-weight: 700;
-  color: #333333;
+  color: #111827;
   margin-bottom: 24rpx;
 }
 .f-label {
   display: block;
   font-size: 28rpx;
-  color: #333333;
-  font-weight: 600;
+  color: #111827;
+  font-weight: 500;
   margin: 24rpx 0 16rpx;
 }
 .date-pair {
@@ -391,14 +471,14 @@ onReachBottom(() => {
   display: flex;
   align-items: center;
   padding: 0 20rpx;
-  background: #f8f9fa;
+  background: #f4f6fa;
   border-radius: 16rpx;
 }
-.date-text { font-size: 28rpx; color: #333333; }
-.date-placeholder { font-size: 28rpx; color: #c0c4cc; }
+.date-text { font-size: 28rpx; color: #111827; }
+.date-placeholder { font-size: 28rpx; color: #b9bec6; }
 .date-sep {
   font-size: 24rpx;
-  color: #8b8c8f;
+  color: #9ca3af;
   flex-shrink: 0;
 }
 .area-cell {
@@ -406,12 +486,12 @@ onReachBottom(() => {
   display: flex;
   align-items: center;
   padding: 0 24rpx;
-  background: #f8f9fa;
+  background: #f4f6fa;
   border-radius: 16rpx;
 }
-.area-text { font-size: 28rpx; color: #333333; }
+.area-text { font-size: 28rpx; color: #111827; }
 :deep(.edit-input) {
-  background: #f8f9fa;
+  background: #f4f6fa;
   border-radius: 16rpx;
   padding: 0 24rpx;
 }
@@ -430,6 +510,10 @@ onReachBottom(() => {
   font-size: 32rpx;
   font-weight: 700;
 }
-.btn.primary { background: #336fff; color: #ffffff; }
-.btn.ghost { background: #f5f7fa; color: #333333; }
+.btn.primary {
+  background: #2563eb;
+  color: #ffffff;
+  box-shadow: 0 8rpx 20rpx rgba(37, 99, 235, 0.25);
+}
+.btn.ghost { background: #eff2f7; color: #111827; }
 </style>

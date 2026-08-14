@@ -30,7 +30,7 @@
           class="panel-input"
           maxlength="500"
           placeholder="请输入详细情况"
-          placeholder-style="color:#C0C4CC"
+          placeholder-style="color:#B9BEC6"
         />
         <view class="panel-count">{{ input.length }}/500</view>
         <view class="panel-btns">
@@ -123,9 +123,12 @@ onMounted(load)
 
 <style scoped lang="scss">
 .order-comment {
-  background: #f8f9fa;
-  border-radius: 24rpx;
-  padding: 24rpx;
+  background: #ffffff;
+  border-radius: 28rpx;
+  padding: 28rpx;
+  margin-bottom: 32rpx;
+  border: 1rpx solid rgba(17, 24, 39, 0.06);
+  box-shadow: 0 6rpx 24rpx rgba(17, 24, 39, 0.06);
 }
 .head {
   display: flex;
@@ -134,24 +137,49 @@ onMounted(load)
   margin-bottom: 16rpx;
 }
 .title {
-  font-size: 32rpx;
+  display: flex;
+  align-items: center;
+  gap: 14rpx;
+  font-size: 30rpx;
   font-weight: 700;
-  color: #333333;
+  color: #111827;
+}
+.title::before {
+  content: '';
+  width: 8rpx;
+  height: 28rpx;
+  border-radius: 4rpx;
+  background: #2563eb;
 }
 .action {
-  font-size: 28rpx;
-  color: #336fff;
+  font-size: 26rpx;
+  color: #2563eb;
   font-weight: 600;
 }
 .empty {
-  color: #8b8c8f;
+  color: #9ca3af;
   font-size: 28rpx;
   padding: 24rpx 0;
   text-align: center;
 }
 .item {
-  padding: 20rpx 0;
-  border-bottom: 1rpx solid #eef0f2;
+  position: relative;
+  padding: 20rpx 0 20rpx 36rpx;
+  border-bottom: 1rpx solid rgba(17, 24, 39, 0.05);
+}
+.item:last-child {
+  border-bottom: none;
+}
+.item::before {
+  content: '';
+  position: absolute;
+  left: 6rpx;
+  top: 34rpx;
+  width: 14rpx;
+  height: 14rpx;
+  border-radius: 50%;
+  background: #2563eb;
+  box-shadow: 0 0 0 6rpx rgba(37, 99, 235, 0.12);
 }
 .item-head {
   display: flex;
@@ -161,22 +189,22 @@ onMounted(load)
 .user {
   font-size: 28rpx;
   font-weight: 700;
-  color: #333333;
+  color: #111827;
 }
 .del {
   font-size: 26rpx;
-  color: #d92400;
+  color: #e5484d;
 }
 .time {
   display: block;
   font-size: 24rpx;
-  color: #8b8c8f;
+  color: #9ca3af;
   margin-top: 8rpx;
 }
 .content {
   display: block;
   font-size: 28rpx;
-  color: #333333;
+  color: #4b5563;
   margin-top: 16rpx;
   line-height: 1.5;
 }
@@ -186,10 +214,11 @@ onMounted(load)
   gap: 8rpx;
   margin-top: 24rpx;
   font-size: 28rpx;
-  color: #336fff;
-  background: #e6f0ff;
-  border-radius: 16rpx;
-  padding: 12rpx 24rpx;
+  font-weight: 600;
+  color: #2563eb;
+  background: #e8effd;
+  border-radius: 999rpx;
+  padding: 14rpx 28rpx;
 }
 .add-icon {
   font-size: 32rpx;
@@ -199,12 +228,12 @@ onMounted(load)
   .panel-title {
     font-size: 32rpx;
     font-weight: 700;
-    color: #333333;
+    color: #111827;
   }
   .panel-input {
     width: 100%;
     height: 200rpx;
-    background: #f8f9fa;
+    background: #f4f6fa;
     border-radius: 16rpx;
     padding: 20rpx;
     margin-top: 24rpx;
@@ -213,7 +242,7 @@ onMounted(load)
   }
   .panel-count {
     text-align: right;
-    color: #8b8c8f;
+    color: #9ca3af;
     font-size: 24rpx;
     margin-top: 8rpx;
   }

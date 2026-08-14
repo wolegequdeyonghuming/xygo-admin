@@ -151,7 +151,7 @@
 
 <script setup lang="ts">
   import { uploadFileApi } from '@/api/backend/common/upload'
-  import { fetchAttachmentList } from '@/api/backend/common/attachment'
+  import { fetchAttachmentList, fetchAttachmentListByIds } from '@/api/backend/common/attachment'
   import ArtSvgIcon from '@/components/core/base/art-svg-icon/index.vue'
 
   export interface FileItem {
@@ -166,11 +166,14 @@
   const props = withDefaults(defineProps<{
     modelValue?: string | string[]
     maxNumber?: number
+    /** 绑定值格式：url 存访问地址（默认，向后兼容）；id 存附件ID（逗号分隔） */
+    valueType?: 'url' | 'id'
     fileType?: 'image' | 'doc' | 'audio' | 'video' | 'archive' | 'all'
     width?: number
     height?: number
   }>(), {
     maxNumber: 1,
+    valueType: 'url',
     fileType: 'all',
     width: 100,
     height: 100,
@@ -183,12 +186,39 @@
   const dialogVisible = ref(false)
   const uploadInputRef = ref<HTMLInputElement>()
 
-  // 当前已选文件列表（从 v-model 解析）
+  // id 模式下由 v-model（id 串）解析出的附件对象（用于预览）
+  const resolvedList = ref<FileItem[]>([])
+
+  // 当前已选文件列表（从 v-model 解析；id 模式用 resolvedList 的 url 展示）
   const fileList = computed<string[]>(() => {
+    if (props.valueType === 'id') return resolvedList.value.map((a) => a.url).filter(Boolean)
     if (!props.modelValue) return []
     if (Array.isArray(props.modelValue)) return props.modelValue.filter(Boolean)
     return props.modelValue.split(',').map(s => s.trim()).filter(Boolean)
   })
+
+  // id 模式下随 v-model 变化重新解析附件对象
+  watch(
+    () => props.modelValue,
+    async (val) => {
+      if (props.valueType !== 'id') {
+        resolvedList.value = []
+        return
+      }
+      const ids = Array.isArray(val) ? val.join(',') : (val || '')
+      if (!ids.trim()) {
+        resolvedList.value = []
+        return
+      }
+      try {
+        const res = await fetchAttachmentListByIds(ids)
+        resolvedList.value = (res as any)?.list || []
+      } catch {
+        resolvedList.value = []
+      }
+    },
+    { immediate: true }
+  )
 
   const buttonText = computed(() => {
     const map: Record<string, string> = {
@@ -276,6 +306,18 @@
   }
 
   const confirmSelect = () => {
+    if (props.valueType === 'id') {
+      const ids = tempSelected.value.map(f => String(f.id))
+      const existing = resolvedList.value.map(a => String(a.id))
+      const merged = [...existing, ...ids].slice(0, props.maxNumber)
+      if (props.maxNumber === 1) {
+        emit('update:modelValue', merged[0] || '')
+      } else {
+        emit('update:modelValue', merged.join(','))
+      }
+      dialogVisible.value = false
+      return
+    }
     const urls = tempSelected.value.map(f => f.url)
     const existing = fileList.value.slice()
     const merged = [...existing, ...urls].slice(0, props.maxNumber)
@@ -289,6 +331,16 @@
   }
 
   const removeFile = (idx: number) => {
+    if (props.valueType === 'id') {
+      const ids = resolvedList.value.map(a => String(a.id))
+      ids.splice(idx, 1)
+      if (props.maxNumber === 1) {
+        emit('update:modelValue', '')
+      } else {
+        emit('update:modelValue', ids.join(','))
+      }
+      return
+    }
     const list = [...fileList.value]
     list.splice(idx, 1)
     if (props.maxNumber === 1) {

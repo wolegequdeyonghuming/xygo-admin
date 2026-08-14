@@ -7,6 +7,15 @@ import (
 
 // ==================== 订单主表 ====================
 
+// AttachmentInfo 附件对象（联查 sys_attachment）
+type AttachmentInfo struct {
+	Id       uint64 `json:"id" dc:"附件ID"`
+	Url      string `json:"url" dc:"访问地址（相对路径）"`
+	Name     string `json:"name" dc:"文件名"`
+	Size     uint64 `json:"size" dc:"大小（字节）"`
+	Mimetype string `json:"mimetype" dc:"MIME类型"`
+}
+
 // BizOrderListInp 订单主表列表入参
 type BizOrderListInp struct {
 	form.PageReq
@@ -58,6 +67,9 @@ type BizOrderListItem struct {
 	IsNew             string      `json:"isNew" dc:"是否纯新增"`
 	Remark            string      `json:"remark" dc:"备注"`
 	CreatedBy         int64       `json:"createdBy" dc:"录单人ID"`
+	AttachmentId      string      `json:"attachmentId" dc:"附件ID（逗号分隔）"`
+	// 联查字段（来自 sys_attachment）
+	Attachments []AttachmentInfo `json:"attachments" dc:"附件对象列表"`
 	// 关联表字段（来自 LeftJoin）
 	TelemarketerRealName string `json:"telemarketer_real_name" dc:"Telemarketerreal_name"`
 	AgentRealName        string `json:"agent_real_name" dc:"Agentreal_name"`
@@ -108,6 +120,9 @@ type BizOrderViewModel struct {
 	Remark            string      `json:"remark" dc:"备注"`
 	AttachmentId      string      `json:"attachmentId" dc:"附件"`
 	CreatedBy         int64       `json:"createdBy" dc:"录单人ID"`
+
+	// 联查字段（来自 sys_attachment）
+	Attachments []AttachmentInfo `json:"attachments" dc:"附件对象列表"`
 
 	// 关联表字段（来自 LeftJoin）
 	TelemarketerRealName string `json:"telemarketer_real_name" dc:"话务员姓名"`

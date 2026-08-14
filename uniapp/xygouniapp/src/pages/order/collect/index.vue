@@ -70,10 +70,17 @@
       <!-- 附件 -->
       <text class="f-label">附件</text>
       <view class="attachment-grid">
-        <view v-for="(item, i) in attachments" :key="i" class="att-item">
-          <image :src="item.url" class="att-img" mode="aspectFill" @tap="preview(i)" />
-          <view class="att-del" @tap="removeAtt(i)">×</view>
-        </view>
+        <template v-for="(item, i) in attachments" :key="i">
+          <view v-if="isImage(item)" class="att-item">
+            <image :src="item.url" class="att-img" mode="aspectFill" @tap="onTapAtt(i)" />
+            <view class="att-del" @tap="removeAtt(i)">×</view>
+          </view>
+          <view v-else class="att-item file-item" @tap="onTapAtt(i)">
+            <text class="file-ext">{{ fileExt(item.url).toUpperCase() || '文件' }}</text>
+            <text class="file-name">{{ item.name || fileName(item.url) }}</text>
+            <view class="att-del" @tap.stop="removeAtt(i)">×</view>
+          </view>
+        </template>
         <view v-if="attachments.length < 5" class="att-item add" @tap="chooseImage">
           <text class="add-plus">＋</text>
           <text class="add-text">添加图片</text>
@@ -93,7 +100,8 @@ import { ref, reactive } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { getCurrentOrder } from '@/utils/orderBus'
 import config from '@/utils/config'
-import { getOrderView, orderCollect, uploadFile, getAttachmentList } from '@/api/staff'
+import { getOrderView, orderCollect, uploadFile } from '@/api/staff'
+import { isImage, fileExt, fileName, openAttachment } from '@/utils/attachment'
 
 const order = ref({})
 const dateValue = ref('')
@@ -163,19 +171,13 @@ onLoad(async (query) => {
   }
   // 暂存后再次进入：回填已保存字段
   fillFormFromOrder()
-  // 回填已保存附件
-  const attachmentIds = (order.value.attachmentId || '').trim()
-  if (attachmentIds) {
-    try {
-      const data = await getAttachmentList(attachmentIds)
-      attachments.value = (data.list || []).map((a) => ({
-        url: resolveUrl(a.url),
-        attachmentId: a.id
-      }))
-    } catch (e) {
-      // 忽略
-    }
-  }
+  // 回填已保存附件（详情接口联查返回的 attachments 对象，attachmentId 为数字 ID）
+  attachments.value = (order.value.attachments || []).map((a) => ({
+    url: resolveUrl(a.url),
+    attachmentId: a.id,
+    mimetype: a.mimetype,
+    name: a.name || fileName(a.url)
+  }))
 })
 
 function onDateConfirm({ value }) {
@@ -197,7 +199,13 @@ function chooseImage() {
       try {
         for (const path of res.tempFilePaths) {
           const data = await uploadFile(path)
-          attachments.value.push({ url: resolveUrl(data.url) || path, attachmentId: data.attachmentId })
+          attachments.value.push({
+            url: resolveUrl(data.url) || path,
+            attachmentId: data.attachmentId,
+            mimetype: data.mime,
+            ext: data.ext,
+            name: data.name || fileName(data.url)
+          })
         }
       } catch (e) {
         uni.showToast({ title: '上传失败', icon: 'none' })
@@ -210,8 +218,15 @@ function chooseImage() {
 function removeAtt(i) {
   attachments.value.splice(i, 1)
 }
-function preview(i) {
-  uni.previewImage({ urls: attachments.value.map((a) => a.url), current: i })
+function onTapAtt(i) {
+  const item = attachments.value[i]
+  if (!item) return
+  if (isImage(item)) {
+    const imageUrls = attachments.value.filter((a) => isImage(a)).map((a) => a.url)
+    uni.previewImage({ urls: imageUrls, current: item.url })
+    return
+  }
+  openAttachment(item)
 }
 
 async function submit(finish) {
@@ -244,54 +259,99 @@ async function submit(finish) {
 </script>
 
 <style scoped lang="scss">
-.form-page { min-height: 100vh; background: #f5f6f8; padding: 24rpx 32rpx; box-sizing: border-box; }
+.form-page { min-height: 100vh; background: #f4f6fa; padding: 24rpx 32rpx; box-sizing: border-box; }
 .info-card, .section-card, .edit-card {
-  background: #ffffff; border-radius: 24rpx; padding: 32rpx; margin-bottom: 40rpx; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
+  background: #ffffff; border-radius: 28rpx; padding: 32rpx; margin-bottom: 32rpx;
+  border: 1rpx solid rgba(17, 24, 39, 0.06); box-shadow: 0 6rpx 24rpx rgba(17, 24, 39, 0.06);
 }
 .card-head { display: flex; align-items: center; gap: 16rpx; margin-bottom: 32rpx; }
-.business { font-size: 32rpx; font-weight: 700; color: #333333; }
+.business { font-size: 32rpx; font-weight: 600; color: #111827; }
 .field { display: flex; align-items: baseline; font-size: 28rpx; line-height: 1.4; margin-bottom: 24rpx; }
-.label { color: #8b8c8f; flex-shrink: 0; }
-.val { color: #8b8c8f; word-break: break-all; }
-.val.link { color: #336fff; }
-.sec-title { display: block; font-size: 32rpx; font-weight: 700; color: #333333; margin-bottom: 24rpx; }
-.sec-content { font-size: 28rpx; color: #8b8c8f; line-height: 1.5; }
+.label { color: #9ca3af; flex-shrink: 0; }
+.val { color: #4b5563; word-break: break-all; }
+.val.link { color: #2563eb; }
+.sec-title { display: flex; align-items: center; gap: 14rpx; font-size: 30rpx; font-weight: 700; color: #111827; margin-bottom: 24rpx; }
+.sec-title::before { content: ''; width: 8rpx; height: 28rpx; border-radius: 4rpx; background: #2563eb; }
+.sec-content { font-size: 28rpx; color: #4b5563; line-height: 1.5; }
 
-.edit-title { display: block; font-size: 32rpx; font-weight: 700; color: #333333; margin-bottom: 24rpx; }
-.f-label { display: block; font-size: 28rpx; color: #333333; font-weight: 600; margin: 32rpx 0 16rpx; }
-:deep(.edit-input) { background: #f8f9fa; border-radius: 16rpx; padding: 0 24rpx; }
+.edit-title { display: flex; align-items: center; gap: 14rpx; font-size: 30rpx; font-weight: 700; color: #111827; margin-bottom: 24rpx; }
+.edit-title::before { content: ''; width: 8rpx; height: 28rpx; border-radius: 4rpx; background: #2563eb; }
+.f-label { display: block; font-size: 28rpx; color: #111827; font-weight: 500; margin: 32rpx 0 16rpx; }
+:deep(.edit-input) { background: #f4f6fa; border-radius: 16rpx; padding: 0 24rpx; }
 
 .date-cell {
   height: 80rpx;
   display: flex;
   align-items: center;
   padding: 0 24rpx;
-  background: #f8f9fa;
+  background: #f4f6fa;
   border-radius: 16rpx;
 }
-.date-text { font-size: 28rpx; color: #333333; }
-.date-placeholder { font-size: 28rpx; color: #c0c4cc; }
+.date-text { font-size: 28rpx; color: #111827; }
+.date-placeholder { font-size: 28rpx; color: #b9bec6; }
 
 .segment { display: flex; gap: 24rpx; }
 .seg-item {
-  width: 120rpx; height: 72rpx; border-radius: 16rpx; background: #f8f9fa;
-  display: flex; align-items: center; justify-content: center; font-size: 28rpx; color: #333333;
+  width: 120rpx; height: 72rpx; border-radius: 16rpx; background: #f4f6fa;
+  display: flex; align-items: center; justify-content: center; font-size: 28rpx; color: #111827;
 }
-.seg-item.on { background: #336fff; color: #ffffff; }
+.seg-item.on { background: #2563eb; color: #ffffff; }
 
 .attachment-grid { display: flex; flex-wrap: wrap; gap: 16rpx; }
 .att-item {
-  width: 176rpx; height: 176rpx; border-radius: 16rpx; border: 2rpx dashed #d9d9d9;
-  position: relative; overflow: hidden;
+  width: 176rpx; height: 176rpx; border-radius: 16rpx; border: 2rpx dashed #d0d5dd;
+  position: relative; overflow: hidden; background: #ffffff;
 }
 .att-img { width: 100%; height: 100%; }
 .att-del {
   position: absolute; top: 0; right: 0; width: 40rpx; height: 40rpx;
-  background: rgba(0,0,0,0.5); color: #fff; text-align: center; line-height: 40rpx; border-radius: 0 0 0 16rpx;
+  background: rgba(17, 24, 39, 0.55); color: #fff; text-align: center; line-height: 40rpx; border-radius: 0 0 0 16rpx;
 }
 .att-item.add { display: flex; flex-direction: column; align-items: center; justify-content: center; }
-.add-plus { font-size: 48rpx; color: #8b8c8f; line-height: 1; }
-.add-text { font-size: 24rpx; color: #8b8c8f; margin-top: 8rpx; }
+.add-plus { font-size: 48rpx; color: #9ca3af; line-height: 1; }
+.add-text { font-size: 24rpx; color: #9ca3af; margin-top: 8rpx; }
+
+.att-item.file-item {
+  width: 100%;
+  height: auto;
+  min-height: 96rpx;
+  border: none;
+  background: #f4f6fa;
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  padding: 20rpx 24rpx;
+  box-sizing: border-box;
+  overflow: visible;
+}
+.file-ext {
+  flex-shrink: 0;
+  font-size: 24rpx;
+  font-weight: 700;
+  color: #2563eb;
+  background: #e8effd;
+  border-radius: 8rpx;
+  padding: 6rpx 12rpx;
+}
+.file-name {
+  flex: 1;
+  font-size: 28rpx;
+  color: #111827;
+  word-break: break-all;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.att-item.file-item .att-del {
+  position: relative;
+  top: auto;
+  right: auto;
+  border-radius: 50%;
+  width: 44rpx;
+  height: 44rpx;
+  line-height: 44rpx;
+  flex-shrink: 0;
+}
 
 .bottom { padding-top: 16rpx; }
 </style>

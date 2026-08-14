@@ -183,14 +183,11 @@
     router.back()
   }
 
-  /** 附件 URL 列表（兼容逗号分隔的多个附件） */
+  /** 附件 URL 列表（来自详情接口联查返回的 attachments 对象） */
   const attachmentList = computed<string[]>(() => {
-    const raw = detail.value?.attachmentId
-    if (!raw) return []
-    return String(raw)
-      .split(',')
-      .map((s) => s.trim())
-      .filter(Boolean)
+    const list = detail.value?.attachments
+    if (!Array.isArray(list)) return []
+    return list.map((a: Record<string, any>) => a?.url).filter(Boolean)
   })
 
   /** 图片类型的附件 URL 列表（供 ElImage 预览） */

@@ -35,6 +35,18 @@ export function fetchAttachmentList(params: {
 }
 
 /**
+ * 按附件 ID 列表（逗号分隔）获取附件信息
+ */
+export function fetchAttachmentListByIds(ids: string) {
+  return adminRequest.get<{
+    list: any[]
+  }>({
+    url: '/attachment/listByIds',
+    params: { ids }
+  })
+}
+
+/**
  * 删除附件
  */
 export function fetchDeleteAttachment(id: number) {

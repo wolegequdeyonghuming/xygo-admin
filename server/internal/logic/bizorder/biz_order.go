@@ -90,6 +90,9 @@ func (s *sBizOrder) List(ctx context.Context, in *adminin.BizOrderListInp) (*adm
 	if list == nil {
 		list = []adminin.BizOrderListItem{}
 	}
+	if err := FillOrderListAttachments(ctx, list); err != nil {
+		return nil, err
+	}
 
 	return &adminin.BizOrderListModel{
 		List: list,
@@ -120,6 +123,9 @@ func (s *sBizOrder) View(ctx context.Context, id uint64) (*adminin.BizOrderViewM
 	}
 	if item.Id == 0 {
 		return nil, gerror.New("记录不存在")
+	}
+	if err := FillOrderViewAttachments(ctx, &item); err != nil {
+		return nil, err
 	}
 	return &item, nil
 }

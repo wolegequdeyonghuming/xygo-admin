@@ -1,5 +1,5 @@
 <template>
-  <view class="detail-page">
+  <view class="detail-page" :class="{ 'has-bar': actions.length }">
     <!-- 主信息卡 -->
     <view class="main-card">
       <view class="card-head">
@@ -12,15 +12,19 @@
           <text class="label">客户电话：</text>
           <text class="val link" @tap="callPhone(order.contactPhone)">{{ order.contactPhone || '-' }}</text>
         </view>
-        <view class="field"><text class="label">预约时间：</text><text class="val">{{ order.visitDate || order.scheduleDate || '-' }}</text></view>
+        <view class="field"><text class="label">排单日期：</text><text class="val">{{ order.scheduleDate || '-' }}</text></view>
+        <view class="field"><text class="label">区县：</text><text class="val">{{ areaLabel(order.area) || '-' }}</text></view>
         <view class="field">
           <text class="label">办理地址：</text>
           <text class="val link" @tap="copyAddress(order.installAddress)">{{ order.installAddress || '-' }}</text>
         </view>
         <view class="field"><text class="label">订单编号：</text><text class="val">{{ order.orderNo || '-' }}</text></view>
         <view class="field"><text class="label">可联系时间：</text><text class="val">{{ order.availableTimeDesc || '-' }}</text></view>
+        <view class="field"><text class="label">到期时间：</text><text class="val">{{ order.expiryDate || '-' }}</text></view>
         <view class="field"><text class="label">话务员：</text><text class="val">{{ order.telemarketer_real_name || '-' }}</text></view>
         <view class="field"><text class="label">收单员：</text><text class="val">{{ order.agent_real_name || '-' }}</text></view>
+        <view class="field"><text class="label">创建时间：</text><text class="val">{{ fmtTime(order.createdAt) }}</text></view>
+        <view class="field"><text class="label">更新时间：</text><text class="val">{{ fmtTime(order.updatedAt) }}</text></view>
       </view>
     </view>
 
@@ -30,10 +34,18 @@
       v-if="Number(order.orderStatus) >= 4"
       title="收单情况"
       :rows="[
-        { label: '成交业务', value: order.dealtBusinessType },
         { label: '上门日期', value: order.visitDate },
+        { label: '成交业务', value: order.dealtBusinessType },
+        { label: '携转情况', value: order.portingStatus },
+        { label: '客户实际姓名', value: order.customerRealName },
+        { label: '客户身份证号', value: order.customerIdNumber },
         { label: '实缴额度', value: order.paidAmount },
-        { label: '新开号码', value: order.newPhoneNo }
+        { label: '是否乡下单', value: yesNo(order.isRuralOrder) },
+        { label: '主卡号码', value: order.primaryTelNo },
+        { label: '新开号码', value: order.newPhoneNo },
+        { label: '终端串码', value: order.deviceSerial },
+        { label: '话补', value: order.subsidyAmount },
+        { label: '是否纯新增', value: order.isNew }
       ]"
     />
     <detail-section
@@ -45,34 +57,42 @@
       v-if="Number(order.orderStatus) >= 6"
       title="完工情况"
       :rows="[
-        { label: '是否完工', value: order.isCompleted ? '已完工' : '-' },
+        { label: '是否完工', value: completeText(order.isCompleted) },
         { label: '宽带账号', value: order.broadbandAccount },
-        { label: '工号', value: order.agencyNo }
+        { label: '工号', value: order.agencyNo },
+        { label: '备注', value: order.remark }
       ]"
     />
 
     <!-- 附件 -->
     <view v-if="attachments.length" class="att-card">
       <text class="att-title">附件</text>
-      <view class="att-grid">
+      <!-- 图片 -->
+      <view v-if="imageList.length" class="att-grid">
         <image
-          v-for="(img, i) in attachments"
+          v-for="(img, i) in imageList"
           :key="i"
-          :src="img"
+          :src="img.url"
           class="att-img"
           mode="aspectFill"
-          @tap="preview(i)"
+          @tap="onTapAtt(img)"
         />
+      </view>
+      <!-- 非图片文件 -->
+      <view v-if="fileList.length" class="att-files">
+        <view v-for="(f, i) in fileList" :key="i" class="file-item" @tap="onTapAtt(f)">
+          <text class="file-ext">{{ fileExt(f.url).toUpperCase() || '文件' }}</text>
+          <text class="file-name">{{ f.name || fileName(f.url) }}</text>
+        </view>
       </view>
     </view>
 
     <!-- 详细情况 -->
     <order-comment v-if="order.id" :order-id="order.id" />
 
-    <!-- 底部操作 -->
-    <view class="bottom">
+    <!-- 底部固定操作栏 -->
+    <view v-if="actions.length" class="bottom">
       <bottom-action
-        v-if="actions.length"
         :primary="actions[0].text"
         :ghost="actions[1] ? actions[1].text : ''"
         @primary-tap="onPrimary"
@@ -119,15 +139,19 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { onLoad, onShow } from '@dcloudio/uni-app'
-import { getOrderView, getAttachmentList, getAgentList, orderSchedule, orderComplete } from '@/api/staff'
+import { getOrderView, getAgentList, getDictData, orderSchedule, orderComplete } from '@/api/staff'
 import { getCurrentOrder } from '@/utils/orderBus'
 import { useStaffStore } from '@/store/staff'
 import config from '@/utils/config'
+import { isImage, fileExt, fileName, openAttachment } from '@/utils/attachment'
 
 const store = useStaffStore()
 const order = ref({})
 const attachments = ref([])
 const orderId = ref('')
+
+// 区县字典（详情展示用）
+const areaOptions = ref([])
 
 // 排单弹窗
 const showSchedule = ref(false)
@@ -161,7 +185,10 @@ const actions = computed(() => {
   if (s === 2 && canCollect.value) list.push({ text: '填写预约情况', type: 'appoint' })
   if (s === 3 && canCollect.value) list.push({ text: '填写收单情况', type: 'collect' })
   if (s === 4 && canCollect.value) list.push({ text: '编辑收单', type: 'collect' })
-  if ((r === 'documentary' && s === 5) || r === 'admin' || isSuper) list.push({ text: '完工', type: 'complete' })
+  // 完工：文员/管理员/超管需订单已收单（status>=4），未收单不可完工
+  if ((r === 'documentary' || r === 'admin' || isSuper) && s >= 4) {
+    list.push({ text: '完工', type: 'complete' })
+  }
   return list.slice(0, 2)
 })
 
@@ -175,6 +202,33 @@ function fmtDate(v) {
   return v ? String(v).slice(0, 10) : ''
 }
 
+// Unix 秒 → YYYY-MM-DD HH:mm
+function fmtTime(v) {
+  if (!v) return ''
+  const d = new Date(Number(v) * 1000)
+  const pad = (n) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`
+}
+
+function yesNo(v) {
+  if (v === 1 || v === '1') return '是'
+  if (v === 0 || v === '0') return '否'
+  return ''
+}
+
+function completeText(v) {
+  if (v === 1 || v === '1') return '已完工'
+  if (v === 0 || v === '0') return '未完工'
+  return ''
+}
+
+// 区县 ID → 名称
+function areaLabel(area) {
+  if (area === undefined || area === null || area === '') return ''
+  const found = areaOptions.value.find((o) => o.value === String(area))
+  return found ? found.label : ''
+}
+
 function resolveUrl(u) {
   if (!u) return u
   if (/^https?:\/\//.test(u)) return u
@@ -183,15 +237,16 @@ function resolveUrl(u) {
 }
 
 async function loadAttachments() {
-  const attachmentIds = (order.value.attachmentId || '').trim()
-  if (!attachmentIds) return
-  try {
-    const data = await getAttachmentList(attachmentIds)
-    attachments.value = (data.list || []).map((a) => resolveUrl(a.url))
-  } catch (e) {
-    // 忽略
-  }
+  attachments.value = (order.value.attachments || []).map((a) => ({
+    url: resolveUrl(a.url),
+    name: a.name || fileName(a.url),
+    mimetype: a.mimetype
+  }))
 }
+
+// 附件分流：图片 / 非图片文件
+const imageList = computed(() => attachments.value.filter((a) => isImage(a)))
+const fileList = computed(() => attachments.value.filter((a) => !isImage(a)))
 
 async function loadOrder() {
   if (!orderId.value) return
@@ -217,6 +272,14 @@ onLoad((query) => {
   if (!store.userInfo.value) {
     store.fetchProfile()
   }
+  // 加载区县字典（详情展示用）
+  getDictData('area')
+    .then((data) => {
+      areaOptions.value = (data.list || []).map((i) => ({ label: i.label, value: String(i.value) }))
+    })
+    .catch(() => {
+      areaOptions.value = []
+    })
 })
 
 onShow(() => {
@@ -224,8 +287,12 @@ onShow(() => {
   loadOrder()
 })
 
-function preview(i) {
-  uni.previewImage({ urls: attachments.value, current: i })
+function onTapAtt(item) {
+  if (isImage(item)) {
+    uni.previewImage({ urls: imageList.value.map((a) => a.url), current: item.url })
+    return
+  }
+  openAttachment(item)
 }
 
 function callPhone(phone) {
@@ -305,16 +372,20 @@ async function doComplete() {
 <style scoped lang="scss">
 .detail-page {
   min-height: 100vh;
-  background: #f5f6f8;
+  background: #f4f6fa;
   padding: 24rpx 32rpx;
   box-sizing: border-box;
 }
+.detail-page.has-bar {
+  padding-bottom: 200rpx;
+}
 .main-card {
   background: #ffffff;
-  border-radius: 24rpx;
+  border-radius: 28rpx;
   padding: 32rpx;
-  margin-bottom: 40rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+  margin-bottom: 32rpx;
+  border: 1rpx solid rgba(17, 24, 39, 0.06);
+  box-shadow: 0 6rpx 24rpx rgba(17, 24, 39, 0.06);
 }
 .card-head {
   display: flex;
@@ -324,8 +395,8 @@ async function doComplete() {
 }
 .business {
   font-size: 32rpx;
-  font-weight: 700;
-  color: #333333;
+  font-weight: 600;
+  color: #111827;
 }
 .fields {
   display: flex;
@@ -339,29 +410,39 @@ async function doComplete() {
   line-height: 1.4;
 }
 .label {
-  color: #8b8c8f;
+  color: #9ca3af;
   flex-shrink: 0;
 }
 .val {
-  color: #8b8c8f;
+  color: #4b5563;
   word-break: break-all;
 }
 .val.link {
-  color: #336fff;
+  color: #2563eb;
 }
 .att-card {
   background: #ffffff;
-  border-radius: 24rpx;
+  border-radius: 28rpx;
   padding: 32rpx;
-  margin-bottom: 40rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+  margin-bottom: 32rpx;
+  border: 1rpx solid rgba(17, 24, 39, 0.06);
+  box-shadow: 0 6rpx 24rpx rgba(17, 24, 39, 0.06);
 }
 .att-title {
-  display: block;
-  font-size: 32rpx;
-  font-weight: 700;
-  color: #333333;
+  display: flex;
+  align-items: center;
+  gap: 14rpx;
+  font-size: 30rpx;
+  font-weight: 800;
+  color: #111827;
   margin-bottom: 24rpx;
+}
+.att-title::before {
+  content: '';
+  width: 8rpx;
+  height: 28rpx;
+  border-radius: 4rpx;
+  background: #2563eb;
 }
 .att-grid {
   display: flex;
@@ -373,8 +454,48 @@ async function doComplete() {
   height: 176rpx;
   border-radius: 16rpx;
 }
+.att-files {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+.file-item {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  background: #f4f6fa;
+  border-radius: 16rpx;
+  padding: 20rpx 24rpx;
+}
+.file-ext {
+  flex-shrink: 0;
+  font-size: 24rpx;
+  font-weight: 700;
+  color: #2563eb;
+  background: #e8effd;
+  border-radius: 8rpx;
+  padding: 6rpx 12rpx;
+}
+.file-name {
+  flex: 1;
+  font-size: 28rpx;
+  color: #111827;
+  word-break: break-all;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .bottom {
-  padding-top: 24rpx;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 100;
+  background: #ffffff;
+  padding: 16rpx 32rpx;
+  padding-bottom: calc(16rpx + env(safe-area-inset-bottom));
+  box-shadow: 0 -4rpx 24rpx rgba(17, 24, 39, 0.08);
+  box-sizing: border-box;
 }
 
 .popup-panel {
@@ -384,14 +505,14 @@ async function doComplete() {
   display: block;
   font-size: 32rpx;
   font-weight: 700;
-  color: #333333;
+  color: #111827;
   margin-bottom: 24rpx;
 }
 .f-label {
   display: block;
   font-size: 28rpx;
-  color: #333333;
-  font-weight: 600;
+  color: #111827;
+  font-weight: 500;
   margin: 24rpx 0 16rpx;
 }
 .schedule-cell {
@@ -399,13 +520,13 @@ async function doComplete() {
   display: flex;
   align-items: center;
   padding: 0 24rpx;
-  background: #f8f9fa;
+  background: #f4f6fa;
   border-radius: 16rpx;
 }
-.date-text { font-size: 28rpx; color: #333333; }
-.date-placeholder { font-size: 28rpx; color: #c0c4cc; }
+.date-text { font-size: 28rpx; color: #111827; }
+.date-placeholder { font-size: 28rpx; color: #b9bec6; }
 :deep(.edit-input) {
-  background: #f8f9fa;
+  background: #f4f6fa;
   border-radius: 16rpx;
   padding: 0 24rpx;
 }
@@ -424,6 +545,10 @@ async function doComplete() {
   font-size: 32rpx;
   font-weight: 700;
 }
-.btn.primary { background: #336fff; color: #ffffff; }
-.btn.ghost { background: #f5f7fa; color: #333333; }
+.btn.primary {
+  background: #2563eb;
+  color: #ffffff;
+  box-shadow: 0 8rpx 20rpx rgba(37, 99, 235, 0.25);
+}
+.btn.ghost { background: #eff2f7; color: #111827; }
 </style>
