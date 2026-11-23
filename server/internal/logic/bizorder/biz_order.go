@@ -219,9 +219,14 @@ func (s *sBizOrder) StepEdit(ctx context.Context, in *adminin.BizOrderStepEditIn
 		if err != nil {
 			return 0, err
 		}
+		// 保存即派单：录单时选择收单员则订单直接置为已接单（一步到位）
+		orderStatus := consts.OrderStatusRecorded
+		if in.AgentId > 0 {
+			orderStatus = consts.OrderStatusAssigned
+		}
 		data := g.Map{
 			"id":              in.Id,
-			"order_status":    consts.OrderStatusRecorded,
+			"order_status":    orderStatus,
 			"created_by":      userId,
 			"telemarketer_id": userId,
 			"is_deleted":      0,
@@ -294,6 +299,12 @@ func (s *sBizOrder) StepEdit(ctx context.Context, in *adminin.BizOrderStepEditIn
 		data["created_by"] = userId
 		data["telemarketer_id"] = userId
 	}
+	// 保存即派单：录单(1)/派单(2)步骤选择收单员且订单未接单时，同步推进为已接单
+	if in.AgentId > 0 &&
+		(in.Step == consts.OrderStatusRecorded || in.Step == consts.OrderStatusAssigned) &&
+		cur.OrderStatus < consts.OrderStatusAssigned {
+		data["order_status"] = consts.OrderStatusAssigned
+	}
 	// 保存为暂存：仅更新本步骤字段，不改变订单状态（状态推进由 stepNext 接口负责）
 	_, err = dao.BizOrder.Ctx(ctx).Where("id", in.Id).Data(data).Update()
 	return uint64(in.Id), err
@@ -346,6 +357,10 @@ func (s *sBizOrder) buildStepData(in *adminin.BizOrderStepEditInp) (g.Map, error
 		data["contact_phone"] = in.ContactPhone
 		data["business_type"] = in.BusinessType
 		data["expiry_date"] = in.ExpiryDate
+		// 录单时可直接选择收单员（保存即派单，一步到位）
+		if in.AgentId > 0 {
+			data["agent_id"] = in.AgentId
+		}
 	case consts.OrderStatusAssigned: // 2 派单
 		if in.AgentId <= 0 {
 			return nil, gerror.New("请选择收单员")

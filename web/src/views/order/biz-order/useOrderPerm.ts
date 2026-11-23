@@ -30,7 +30,7 @@ export const ORDER_STEP = {
 } as const
 
 /** 订单相关角色 key（集中管理） */
-const ORDER_ROLES: Record<string, string> = {
+export const ORDER_ROLES: Record<string, string> = {
   ADMIN: 'admin',
   TELEMARKETER_MANAGER: 'telemarketer_manager',
   AGENT_MANAGER: 'agent_manager',
@@ -151,6 +151,11 @@ export const useOrderPerm = () => {
     return false
   }
 
+  /** 当前角色是否具备派单权限（录单弹窗据此显示收单员选择）。
+   * 话务员虽不能执行独立「派单」步骤，但录单时可直接选收单员完成派单。 */
+  const canAssignDuringRecord = (): boolean =>
+    role() === ORDER_ROLES.TELEMARKETER || canStep(ORDER_STEP.ASSIGN)
+
   /**
    * 是否允许删除某状态订单：
    * - 话务员/话务员管理员：仅已录单（status=1）
@@ -196,6 +201,7 @@ export const useOrderPerm = () => {
     anyRoleCanStep,
     canStepFromStatus,
     canOperateOrder,
+    canAssignDuringRecord,
     canDeleteOrder,
     nextStepForOrder,
     canRecordOrder,

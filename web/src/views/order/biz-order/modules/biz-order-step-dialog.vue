@@ -64,6 +64,16 @@
               <ElInput v-model="formData.expiryDate" placeholder="请输入到期时间" />
             </ElFormItem>
           </ElCol>
+          <!-- 话务员等具备派单权限的角色：录单时可直接选择收单员（一步派单） -->
+          <ElCol v-if="canAssign" :span="24">
+            <ElFormItem label="收单员" prop="agentId">
+              <ArtPersonSelector
+                v-model="formData.agentId"
+                placeholder="请选择收单员"
+                :role-ids="[8, 11]"
+              />
+            </ElFormItem>
+          </ElCol>
         </template>
 
         <!-- 2 派单 -->
@@ -221,7 +231,9 @@
         暂存
       </ElButton>
       <ElButton type="primary" :loading="loading" @click="handleSave">保存</ElButton>
-      <ElButton v-if="canSaveNext" type="primary" :loading="loading" @click="handleSaveNext">保存并下一步</ElButton>
+      <ElButton v-if="canSaveNext" type="primary" :loading="loading" @click="handleSaveNext"
+        >保存并下一步</ElButton
+      >
     </template>
   </ElDialog>
 </template>
@@ -236,7 +248,13 @@
   import { ORDER_STEP as STEP, useOrderPerm } from '../useOrderPerm'
 
   const dictStore = useDictStore()
-  const { canStep } = useOrderPerm()
+  const { canStep, canAssignDuringRecord } = useOrderPerm()
+
+  /** 当前角色是否可在录单时直接选收单员（录单弹窗据此显示收单员选择） */
+  const canAssign = computed(() => canAssignDuringRecord())
+
+  /** 是否处于「保存并下一步」模式（录单时选收单员才为必填） */
+  const saveNextMode = ref(false)
 
   const props = defineProps<{
     visible: boolean
@@ -261,9 +279,10 @@
   const isEdit = computed(() => props.orderId > 0)
 
   /** 当前角色能否执行「保存并下一步」：
-   * 录单（新建/补录）保存后推进到派单，需派单权限；其余步骤保存后推进即执行本步骤本身 */
+   * 录单(1)/派单(2)步骤「保存」即完成本环节（选收单员保存即派单），不再提供「保存并下一步」；
+   * 其余步骤(3-6)保存后推进即执行本步骤本身 */
   const canSaveNext = computed(() => {
-    if (props.step === STEP.RECORD) return canStep(STEP.ASSIGN)
+    if (props.step === STEP.RECORD || props.step === STEP.ASSIGN) return false
     return canStep(props.step)
   })
 
@@ -316,7 +335,18 @@
   const rules = reactive<FormRules>({
     customerName: [{ required: true, message: '客户姓名不能为空', trigger: 'blur' }],
     contactPhone: [{ required: true, message: '联系电话不能为空', trigger: 'blur' }],
-    agentId: [{ required: true, message: '请选择收单员', trigger: 'change' }]
+    agentId: [
+      {
+        validator: (_rule: any, value: any, callback: any) => {
+          // 派单步骤必填；录单步骤仅在「保存并下一步」时必填（普通保存允许先不派单）
+          const required =
+            props.step === STEP.ASSIGN || (props.step === STEP.RECORD && saveNextMode.value)
+          if (required && !value) return callback(new Error('请选择收单员'))
+          callback()
+        },
+        trigger: 'change'
+      }
+    ]
   })
 
   const resetForm = () => {
@@ -355,13 +385,16 @@
 
   const handleSave = async () => {
     if (!formRef.value) return
+    saveNextMode.value = false
     await formRef.value.validate()
     emit('submit', { id: props.orderId, step: props.step, ...formData })
   }
 
   const handleSaveNext = async () => {
     if (!formRef.value) return
+    saveNextMode.value = true
     await formRef.value.validate()
+    saveNextMode.value = false
     emit('submitNext', { id: props.orderId, step: props.step, ...formData })
   }
 
